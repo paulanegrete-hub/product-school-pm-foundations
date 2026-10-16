@@ -10,10 +10,10 @@ This is a **template repo**. Click **Use this template → Create a new reposito
 
 | # | Deliverable | Module | Status | File |
 |---|---|---|---|---|
-| 1 | **Strategic Discovery Map** (groundwork) | M1 | ☐ | `01-product-thinking/strategic-map.md` |
-| 1 | **Problem Hook & Value Proposition** (+ hypothesis) | M1 | ☐ | `01-product-thinking/problem-hook.md` |
-| 2 | **AI Synthesis** — Product Health & Insights Summary | M2 | ☐ | `02-discovery/ai-synthesis.md` |
-| 2 | **Competitive Analysis & Journey Map** | M2 | ☐ | `02-discovery/competitive-and-journey.md` |
+| 1 | **Strategic Discovery Map** (groundwork) | M1 | ☑ | `01-product-thinking/strategic-map.md` |
+| 1 | **Problem Hook & Value Proposition** (+ hypothesis) | M1 | ☑ (hypothesis in M3) | `01-product-thinking/problem-hook.md` |
+| 2 | **AI Synthesis** — Product Health & Insights Summary | M2 | ◐ red flags + audit pending | `02-discovery/ai-synthesis.md` |
+| 2 | **Competitive Analysis & Journey Map** | M2 | ☑ | `02-discovery/competitive-and-journey.md` |
 | 3 | **Hypothesis & Success Metrics** | M3 | ☐ | `03-analytics/hypothesis-and-metrics.md` |
 | 4 | **Roadmap, PRD & Prototype** | M4 | ☐ | `04-roadmap/roadmap-prd-prototype.md` |
 | 4 | **PRD & Prototype Sprint** | M4 | ☐ | `04-roadmap/prd-and-prototype.md` |
@@ -24,9 +24,7 @@ This is a **template repo**. Click **Use this template → Create a new reposito
 
 ## The project in one sentence
 
-_What is your product concept, who is it for, and what's the single bet you're making?_
-
-___
+**RouteLogic Velocity** is a focused workspace for regional fleet dispatchers and their drivers. The bet: if a live re-route reaches the driver in seconds and closes in one tap, dispatchers stop running the day from WhatsApp, and our largest accounts stay.
 
 ## How to submit
 

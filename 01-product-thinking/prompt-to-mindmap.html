@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prompt to Mindmap</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fafaf9; --surface: #ffffff; --text: #0a0a0a; --muted: #737373; --faint: #a3a3a3;
+    --line: #e7e5e4; --root-bg: #0a0a0a; --root-text: #fafaf9; --warn: #d97706;
+    --c1: #3b82f6; --c2: #14b8a6; --c3: #8b5cf6; --c4: #f97316;
+    --c5: #ec4899; --c6: #22c55e; --c7: #eab308; --c8: #64748b;
+    --q-win: #16a34a; --q-bet: #2563eb; --q-fill: #78716c; --q-pit: #dc2626;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0a0a0a; --surface: #141414; --text: #fafafa; --muted: #a3a3a3; --faint: #6b6b6b;
+      --line: #262626; --root-bg: #fafafa; --root-text: #0a0a0a; --warn: #f59e0b;
+      --c1: #60a5fa; --c2: #2dd4bf; --c3: #a78bfa; --c4: #fb923c;
+      --c5: #f472b6; --c6: #4ade80; --c7: #facc15; --c8: #94a3b8;
+      --q-win: #4ade80; --q-bet: #60a5fa; --q-fill: #a8a29e; --q-pit: #f87171;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0a0a0a; --surface: #141414; --text: #fafafa; --muted: #a3a3a3; --faint: #6b6b6b;
+    --line: #262626; --root-bg: #fafafa; --root-text: #0a0a0a; --warn: #f59e0b;
+    --c1: #60a5fa; --c2: #2dd4bf; --c3: #a78bfa; --c4: #fb923c;
+    --c5: #f472b6; --c6: #4ade80; --c7: #facc15; --c8: #94a3b8;
+    --q-win: #4ade80; --q-bet: #60a5fa; --q-fill: #a8a29e; --q-pit: #f87171;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 14px/1.5 "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  header { padding: 48px 16px 0; max-width: 1080px; margin: 0 auto; }
+  .eyebrow { font: 500 11px/1 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); }
+  h1 { margin: 10px 0 0; font-size: 32px; font-weight: 600; letter-spacing: -0.03em; }
+  .bar { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 28px; }
+  .tabs { display: inline-flex; gap: 2px; padding: 3px; border-radius: 10px; background: var(--line); flex-wrap: wrap; }
+  button { font: inherit; cursor: pointer; color: inherit; background: none; border: none; }
+  .tab { padding: 7px 14px; border-radius: 8px; color: var(--muted); font-weight: 500; font-size: 13px; transition: color .15s, background .15s; }
+  .tab:hover { color: var(--text); }
+  .tab[aria-selected="true"] { background: var(--surface); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+  .toolbar { display: flex; gap: 4px; }
+  .toolbar button { font-size: 12px; color: var(--muted); padding: 6px 10px; border-radius: 6px; }
+  .toolbar button:hover { color: var(--text); background: var(--line); }
+  .prompt { margin: 24px 0 0; max-width: 760px; font: 400 12.5px/1.65 "JetBrains Mono", ui-monospace, monospace; color: var(--muted); }
+  .prompt::before { content: "prompt  "; color: var(--faint); }
+  .prompt:empty { display: none; }
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 16px; color: var(--muted); font-size: 12px; }
+  .legend:empty { display: none; }
+  .legend span::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--dot); margin-right: 7px; vertical-align: 2px; }
+
+  #viewport { overflow: auto; padding: 24px 16px; }
+  #stage { position: relative; margin: 0 auto; transform-origin: top left; }
+  svg { position: absolute; inset: 0; overflow: visible; pointer-events: none; }
+  .node { position: absolute; transform: translate(-50%, -50%); white-space: nowrap; }
+  .node.root {
+    background: var(--root-bg); color: var(--root-text);
+    font-weight: 600; font-size: 15px; letter-spacing: -0.01em; padding: 12px 20px; border-radius: 999px;
+    white-space: normal; max-width: 240px; text-align: center;
+  }
+  .node.branch {
+    font-weight: 600; font-size: 13px; cursor: pointer; user-select: none;
+    padding: 6px 12px; border-radius: 999px; background: var(--surface);
+    border: 1px solid var(--line); color: var(--text);
+    display: flex; align-items: center; gap: 8px; transition: border-color .15s;
+  }
+  .node.branch::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+  .node.branch:hover { border-color: var(--accent); }
+  .node.branch .count { color: var(--faint); font-weight: 500; font-size: 11px; }
+  .node.branch.has-tension::after { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--warn); }
+  .node.leaf { font-size: 13px; color: var(--text); padding: 2px 0; }
+  .node.leaf.right { transform: translate(0, -50%); padding-left: 10px; }
+  .node.leaf.left { transform: translate(-100%, -50%); padding-right: 10px; text-align: right; }
+  .node.leaf small { display: block; color: var(--muted); font-size: 11.5px; }
+  .node.tension { color: var(--warn); font-weight: 500; }
+  .node.tension::before { content: "◆ "; font-size: 9px; vertical-align: 1px; }
+  .pill { font: 500 10px/1 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .02em; padding: 3px 6px; border-radius: 4px; margin-left: 8px; vertical-align: 1px; color: var(--q); background: color-mix(in srgb, var(--q) 12%, transparent); }
+  .pill.win { --q: var(--q-win); } .pill.bet { --q: var(--q-bet); }
+  .pill.fill { --q: var(--q-fill); } .pill.pit { --q: var(--q-pit); }
+
+  #tensions { max-width: 1080px; margin: 16px auto 72px; padding: 0 16px; }
+  #tensions:empty { display: none; }
+  #tensions h2 { font-size: 20px; font-weight: 600; letter-spacing: -0.02em; margin: 8px 0 4px; }
+  #tensions > p { margin: 0 0 20px; color: var(--muted); }
+  .t-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+  .t-card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
+  .t-card .where { font: 500 10.5px/1 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .08em; text-transform: uppercase; color: var(--warn); }
+  .t-card h3 { margin: 8px 0 14px; font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+  .t-card .sides { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; font-size: 12.5px; color: var(--muted); }
+  .t-card .sides b { display: block; color: var(--text); font-weight: 500; margin-bottom: 2px; }
+  .t-card .q { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--line); font-size: 13px; }
+  .t-card .q b { font-weight: 600; }
+  @media (max-width: 600px) { header { padding-top: 28px; } h1 { font-size: 24px; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Product School · PM Foundations · Class 01</div>
+  <h1>Water tracking app, three prompts</h1>
+  <div class="bar">
+    <div class="tabs" role="tablist" id="tabs"></div>
+    <div class="toolbar">
+      <button id="expand">Expand all</button>
+      <button id="collapse">Collapse all</button>
+    </div>
+  </div>
+  <div class="prompt" id="prompt"></div>
+  <div class="legend" id="legend"></div>
+</header>
+<div id="viewport"><div id="stage"><svg id="links"></svg></div></div>
+<section id="tensions"></section>
+
+<script>
+const MAPS = [
+  {
+    tab: "01  Overview",
+    prompt: "Create a mindmap for a water tracking app.",
+    root: "💧 Water Tracker",
+    branches: [
+      { name: "Problem", items: ["People forget to drink water", "No sense of how much is enough", "Hydration habits are hard to keep", "Manual logging feels like a chore"] },
+      { name: "Target users", items: ["Busy office workers", "Athletes & gym-goers", "Health-conscious people", "Pregnant / nursing users", "Older adults"] },
+      { name: "Core features", items: ["One-tap logging", "Custom cup sizes", "Daily progress ring", "History & calendar", "Other drinks (coffee, tea)"] },
+      { name: "Personalization", items: ["Goal from weight & activity", "Weather-adjusted goal", "Wake / sleep schedule", "Units: ml / oz"] },
+      { name: "Reminders", items: ["Smart push notifications", "Quiet hours", "Watch / widget nudges", "Snooze & adaptive timing"] },
+      { name: "Engagement", items: ["Streaks", "Badges & milestones", "Friend challenges", "Weekly summary"] },
+      { name: "Integrations", items: ["Apple Health / Google Fit", "Smartwatches", "Smart bottles", "Fitness apps"] },
+      { name: "Business model", items: ["Freemium", "Premium: insights & themes", "No-ads subscription", "Smart-bottle partnerships"] },
+      { name: "Success metrics", items: ["DAU / MAU", "Day-7 & Day-30 retention", "% days goal reached", "Logs per user per day", "Free → premium conversion"] },
+      { name: "Risks", items: ["Notification fatigue", "Churn after novelty fades", "Health-advice liability", "Health data privacy"] },
+    ],
+  },
+  {
+    tab: "02  Features & needs",
+    prompt: "You are a product manager. Create a mindmap for a mobile app that helps people track daily water intake. Include features, user needs, and potential problems.",
+    root: "📱 Daily Water Intake App",
+    legend: [["Features", "--c1"], ["User needs", "--c6"], ["Potential problems", "--c4"]],
+    branches: [
+      { name: "Features · Logging", color: "--c1", items: ["One-tap quick add", "Custom cup & bottle sizes", "Home-screen widget", "Log from smartwatch", "Edit / undo entries"] },
+      { name: "Features · Goals & reminders", color: "--c1", items: ["Personalized daily goal", "Progress ring", "Smart reminders", "Quiet hours"] },
+      { name: "Features · Insights", color: "--c1", items: ["Daily / weekly history", "Streaks & badges", "Health app sync", "Weekly summary"] },
+      { name: "User needs · Functional", color: "--c6", items: ["Know how much to drink", "Log in under 3 seconds", "Be reminded at the right time", "See progress at a glance"] },
+      { name: "User needs · Emotional", color: "--c6", items: ["Feel healthier & in control", "Sense of achievement", "Not feel nagged or judged", "Trust the advice is safe"] },
+      { name: "Problems · User-side", color: "--c4", items: ["Forgetting to log", "Notification fatigue", "Drop-off after first weeks", "Inaccurate amounts logged"] },
+      { name: "Problems · Product & business", color: "--c4", items: ["Generic goals ignore context", "Health / medical liability", "Health data privacy", "Hard to monetize", "Crowded market"] },
+    ],
+  },
+  {
+    tab: "03  Discovery sprint",
+    prompt: "You are a senior product manager at a health-tech startup preparing for a discovery sprint. Create a structured brainstorm mindmap for a mobile water-tracking app targeting busy adults aged 25 to 40 who know they should drink more but forget. Organize branches around: (1) core user jobs-to-be-done, (2) key friction points in existing behavior, (3) feature ideas ranked by effort vs. impact, (4) monetization paths with tradeoffs, (5) retention risks and how to address them. Flag any area where there's a real strategic tension to debate.",
+    root: "💧 Busy adults 25–\u206040 who forget to drink",
+    row: 46, bx: 270, lx: 420,
+    legend: [["Quick win · low effort, high impact", "--q-win"], ["Big bet · high effort, high impact", "--q-bet"], ["Fill-in · low effort, low impact", "--q-fill"], ["Money pit · high effort, low impact", "--q-pit"], ["Strategic tension", "--warn"]],
+    branches: [
+      { name: "1 · Jobs-to-be-done", color: "--c1", items: [
+        { t: "Remind me at the right moment", d: "so I don't have to remember" },
+        { t: "Tell me if I'm on track today", d: "one glance, no math" },
+        { t: "Make logging effortless", d: "fits into my workday flow" },
+        { t: "Help me build a lasting habit", d: "not a two-week fad" },
+        { t: "Help me feel more energy & focus", d: "the outcome I actually want" },
+        { t: "Hydration tracker or energy companion?", tension: "scope" },
+      ]},
+      { name: "2 · Friction in current behavior", color: "--c4", items: [
+        { t: "Out of sight, out of mind", d: "no bottle nearby, back-to-back meetings" },
+        { t: "Logging is extra work", d: "open app → pick size → confirm" },
+        { t: "Unclear target", d: "8 glasses? 2 L? does coffee count?" },
+        { t: "Reminders get ignored", d: "lost among Slack, email, calendar" },
+        { t: "No visible payoff", d: "benefits are slow and invisible" },
+      ]},
+      { name: "3 · Feature ideas (effort vs. impact)", color: "--c3", items: [
+        { t: "Widget + watch one-tap log", q: "win", d: "removes the logging friction" },
+        { t: "Simple personal daily goal", q: "win", d: "answers “how much is enough?”" },
+        { t: "Calendar-aware reminders", q: "bet", d: "nudge between meetings, not during" },
+        { t: "Energy & focus check-ins", q: "bet", d: "connects water to how you feel" },
+        { t: "Streaks & weekly recap", q: "fill", d: "cheap, but motivation fades" },
+        { t: "Smart-bottle auto-tracking", q: "pit", d: "costly; few users own one" },
+        { t: "Passive tracking vs. manual logging", tension: "passive" },
+      ]},
+      { name: "4 · Monetization paths", color: "--c7", items: [
+        { t: "Freemium + premium insights", d: "+ wide funnel · − low conversion (2–5%)" },
+        { t: "Subscription only", d: "+ predictable revenue · − kills downloads" },
+        { t: "B2B corporate wellness", d: "+ matches 25–40 workers · − long sales cycle" },
+        { t: "Bottle / brand partnerships", d: "+ revenue per user · − pulls focus" },
+        { t: "Ads", d: "+ easy to start · − breaks calm UX and trust" },
+        { t: "Consumer app vs. B2B wellness", tension: "b2b" },
+      ]},
+      { name: "5 · Retention risks → fixes", color: "--c5", items: [
+        { t: "Novelty fades by week 3", d: "→ evolving goals, weekly recap" },
+        { t: "Notifications get muted", d: "→ fewer, context-aware nudges" },
+        { t: "Broken streak = quit", d: "→ streak freeze, forgiving rules" },
+        { t: "Habit formed, app no longer needed", d: "→ low-touch maintenance mode" },
+        { t: "More nudges vs. less annoyance", tension: "nudges" },
+        { t: "Success = user stops needing us", tension: "success" },
+      ]},
+    ],
+    tensions: [
+      { id: "scope", title: "Scope: hydration tracker vs. energy companion", where: "Jobs-to-be-done",
+        a: ["Stay narrow", "Simple, clear promise; fast to build and explain"],
+        b: ["Go broader", "Owns the real outcome (energy, focus); harder to build, fuzzier positioning"],
+        q: "Which job do we want to own, and can we prove water moves energy for this user?" },
+      { id: "passive", title: "Passive tracking vs. manual logging", where: "Feature ideas",
+        a: ["Automate it", "Zero friction; needs hardware or inference, risk of inaccuracy"],
+        b: ["Keep it manual", "Cheap, accurate, builds awareness; logging friction remains"],
+        q: "Is the problem “logging is hard” or “I forget to drink”? The answer decides the build." },
+      { id: "nudges", title: "Nudge intensity", where: "Retention risks",
+        a: ["More reminders", "Lifts short-term logging and DAU"],
+        b: ["Fewer, smarter reminders", "Protects trust; avoids mute and uninstall"],
+        q: "Which metric do we optimize: daily logs this week, or users still active at day 60?" },
+      { id: "b2b", title: "Consumer app vs. B2B wellness", where: "Monetization paths",
+        a: ["B2C freemium", "Fast feedback, product-led growth; low willingness to pay"],
+        b: ["B2B via employers", "Fits 25–40 workers, bigger contracts; slow sales, different buyer"],
+        q: "Do we design for the user or for the HR buyer in year one?" },
+      { id: "success", title: "Success can look like churn", where: "Retention risks",
+        a: ["Measure engagement", "Standard app metrics; rewards keeping users dependent"],
+        b: ["Measure outcomes", "Days hydrated, habit formed; users may leave once it works"],
+        q: "What is our north-star metric, and how does the business model survive a user who “graduates”?" },
+    ],
+  },
+];
+
+const COLORS = ["--c1","--c2","--c3","--c4","--c5","--c6","--c7","--c8","--c1","--c4"];
+const ROW_DEFAULT = 34, GROUP_GAP = 22, BX = 230, LX = 350, PAD = 40, LEAF_W = 300;
+let current = 0;
+let ROW = ROW_DEFAULT;
+const collapsed = new Set();
+const key = name => current + "|" + name;
+
+const stage = document.getElementById("stage");
+const svg = document.getElementById("links");
+
+function sideHeight(list) {
+  return list.reduce((h, b) => h + (collapsed.has(key(b.name)) ? 1 : b.items.length) * ROW + GROUP_GAP, -GROUP_GAP);
+}
+
+function render() {
+  stage.querySelectorAll(".node").forEach(n => n.remove());
+  svg.innerHTML = "";
+  const { root: ROOT, branches: BRANCHES } = MAPS[current];
+  ROW = MAPS[current].row || ROW_DEFAULT;
+  const BXm = MAPS[current].bx || BX, LXm = MAPS[current].lx || LX;
+
+  const half = Math.ceil(BRANCHES.length / 2);
+  const sides = [
+    { dir: 1, list: BRANCHES.slice(0, half), offset: 0 },
+    { dir: -1, list: BRANCHES.slice(half), offset: half },
+  ];
+  const height = Math.max(...sides.map(s => sideHeight(s.list))) + PAD * 2;
+  const width = (LXm + LEAF_W) * 2;
+  const cx = width / 2, cy = height / 2;
+  stage.style.width = width + "px";
+  stage.style.height = height + "px";
+
+  addNode(ROOT, cx, cy, "root");
+
+  for (const side of sides) {
+    let y = cy - sideHeight(side.list) / 2;
+    side.list.forEach((b, i) => {
+      const color = `var(${b.color || COLORS[side.offset + i]})`;
+      const isCollapsed = collapsed.has(key(b.name));
+      const rows = isCollapsed ? 1 : b.items.length;
+      const by = y + (rows * ROW) / 2;
+      const bx = cx + side.dir * BXm;
+
+      curve(cx, cy, bx, by, color, 1.5, .55);
+      const bn = addNode(b.name, bx, by, "branch" + (b.items.some(it => it.tension) ? " has-tension" : ""));
+      bn.style.setProperty("--accent", color);
+      if (isCollapsed) {
+        const c = document.createElement("span");
+        c.className = "count"; c.textContent = `+${b.items.length}`;
+        bn.appendChild(c);
+      }
+      bn.onclick = () => { isCollapsed ? collapsed.delete(key(b.name)) : collapsed.add(key(b.name)); render(); };
+
+      if (!isCollapsed) {
+        b.items.forEach((item, j) => {
+          const ly = y + j * ROW + ROW / 2;
+          const lx = cx + side.dir * LXm;
+          curve(bx, by, lx, ly, color, 1, .35);
+          dot(lx, ly, color);
+          const it = typeof item === "string" ? { t: item } : item;
+          const ln = addNode(it.t, lx, ly, "leaf " + (side.dir > 0 ? "right" : "left") + (it.tension ? " tension" : ""));
+          if (it.q) {
+            const pill = document.createElement("span");
+            pill.className = "pill " + it.q;
+            pill.textContent = { win: "Quick win", bet: "Big bet", fill: "Fill-in", pit: "Money pit" }[it.q];
+            ln.appendChild(pill);
+          }
+          if (it.d) {
+            const sm = document.createElement("small");
+            sm.textContent = it.d;
+            ln.appendChild(sm);
+          }
+        });
+      }
+      y += rows * ROW + GROUP_GAP;
+    });
+  }
+  fit();
+}
+
+function addNode(text, x, y, cls) {
+  const d = document.createElement("div");
+  d.className = "node " + cls;
+  d.textContent = text;
+  d.style.left = x + "px"; d.style.top = y + "px";
+  stage.appendChild(d);
+  return d;
+}
+
+function dot(x, y, color) {
+  const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+  c.setAttribute("cx", x); c.setAttribute("cy", y); c.setAttribute("r", 2.5);
+  c.setAttribute("fill", color);
+  svg.appendChild(c);
+}
+
+function curve(x1, y1, x2, y2, color, w, op) {
+  const mx = (x1 + x2) / 2;
+  const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  p.setAttribute("d", `M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`);
+  p.setAttribute("fill", "none");
+  p.setAttribute("stroke", color);
+  p.setAttribute("stroke-width", w);
+  p.setAttribute("stroke-opacity", op);
+  svg.appendChild(p);
+}
+
+function fit() {
+  const avail = document.getElementById("viewport").clientWidth - 32;
+  const w = parseFloat(stage.style.width), h = parseFloat(stage.style.height);
+  const s = Math.min(1, avail / w);
+  stage.style.transform = `scale(${s})`;
+  stage.style.marginBottom = `${h * (s - 1)}px`;
+  stage.style.marginLeft = s < 1 ? "0" : "auto";
+}
+
+document.getElementById("expand").onclick = () => { MAPS[current].branches.forEach(b => collapsed.delete(key(b.name))); render(); };
+document.getElementById("collapse").onclick = () => { MAPS[current].branches.forEach(b => collapsed.add(key(b.name))); render(); };
+
+const tabsEl = document.getElementById("tabs");
+function selectTab(i) {
+  current = i;
+  [...tabsEl.children].forEach((t, j) => t.setAttribute("aria-selected", j === i));
+  const m = MAPS[i];
+  document.getElementById("prompt").textContent = m.prompt || "";
+  document.getElementById("legend").innerHTML = (m.legend || [])
+    .map(([label, c]) => `<span style="--dot: var(${c})">${label}</span>`).join("");
+  const esc = t => t.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+  document.getElementById("tensions").innerHTML = m.tensions ? `
+    <h2>Strategic tensions to debate</h2>
+    <p>These have no obvious right answer. Settle them early in the sprint, because each one changes what we build.</p>
+    <div class="t-grid">${m.tensions.map(t => `
+      <div class="t-card">
+        <div class="where">${esc(t.where)}</div>
+        <h3>${esc(t.title)}</h3>
+        <div class="sides">
+          <div><b>${esc(t.a[0])}</b>${esc(t.a[1])}</div>
+          <div><b>${esc(t.b[0])}</b>${esc(t.b[1])}</div>
+        </div>
+        <div class="q"><b>Debate:</b> ${esc(t.q)}</div>
+      </div>`).join("")}
+    </div>` : "";
+  try { localStorage.setItem("mindmap-tab", i); } catch (e) {}
+  render();
+}
+MAPS.forEach((m, i) => {
+  const t = document.createElement("button");
+  t.className = "tab"; t.setAttribute("role", "tab"); t.textContent = m.tab;
+  t.onclick = () => selectTab(i);
+  tabsEl.appendChild(t);
+});
+window.addEventListener("resize", fit);
+let saved = 0;
+try { saved = Number(localStorage.getItem("mindmap-tab")) || 0; } catch (e) {}
+selectTab(saved < MAPS.length ? saved : 0);
+</script>
+</body>
+</html>

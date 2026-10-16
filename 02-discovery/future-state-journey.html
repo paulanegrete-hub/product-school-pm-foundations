@@ -1,0 +1,262 @@
+<title>Velocity Dispatcher Journey</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one page, a route line with 4 stops running left to right (top to bottom on phones), today's workaround as a faint ghost route below */
+:root {
+  --bg: #F3F5F6;
+  --surface: #FFFFFF;
+  --ink: #15212B;
+  --muted: #5A6872;
+  --line: #D5DCE0;
+  --route: #0E7C7B;
+  --route-soft: #DCEFEE;
+  --pain: #B45309;
+  --pain-soft: #FBEBD9;
+  --display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --body: "Public Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F171D; --surface: #17222A; --ink: #E6ECEF; --muted: #93A3AD; --line: #2A3842;
+    --route: #4FC2BF; --route-soft: #143433; --pain: #F0A35A; --pain-soft: #3A2716;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F171D; --surface: #17222A; --ink: #E6ECEF; --muted: #93A3AD; --line: #2A3842;
+  --route: #4FC2BF; --route-soft: #143433; --pain: #F0A35A; --pain-soft: #3A2716;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--body); font-size: 15px; line-height: 1.5;
+}
+.page {
+  max-width: 1180px; margin: 0 auto;
+  padding-block: 40px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 36px;
+}
+
+/* Header */
+.eyebrow {
+  font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--route); margin: 0 0 10px;
+}
+h1 {
+  font-family: var(--display); font-weight: 800; font-size: clamp(28px, 4.2vw, 44px);
+  line-height: 1.08; letter-spacing: -.01em; margin: 0; max-width: 22ch; text-wrap: balance;
+}
+.lede { color: var(--muted); max-width: 62ch; margin: 14px 0 0; font-size: 16px; }
+
+/* Brief strip */
+.brief {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px;
+  background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
+}
+.brief div { background: var(--surface); padding: 14px 16px; min-width: 0; }
+.brief dt {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 4px;
+}
+.brief dd { margin: 0; font-size: 14px; }
+
+h2 {
+  font-family: var(--display); font-weight: 700; font-size: 20px; margin: 0 0 4px; text-wrap: balance;
+}
+.section-note { color: var(--muted); margin: 0; font-size: 14px; }
+
+/* Timeline */
+.stages {
+  list-style: none; margin: 22px 0 0; padding: 0; position: relative;
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px;
+}
+.stages::before {
+  content: ""; position: absolute; left: 22px; right: 22px; top: 21px; height: 4px;
+  background: var(--route); border-radius: 2px;
+}
+.stage { position: relative; min-width: 0; display: grid; gap: 14px; align-content: start; }
+.node {
+  position: relative; z-index: 1; width: 46px; height: 46px; border-radius: 50%;
+  background: var(--surface); border: 4px solid var(--route);
+  display: grid; place-items: center;
+  font-family: var(--display); font-weight: 800; font-size: 18px; color: var(--route);
+}
+.card {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+  padding: 16px; display: grid; gap: 12px;
+}
+.card h3 {
+  font-family: var(--display); font-weight: 700; font-size: 17px; margin: 0; line-height: 1.2;
+}
+.field { display: grid; gap: 3px; }
+.label {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+}
+.action { margin: 0; font-weight: 500; }
+.arrow { color: var(--route); font-weight: 700; }
+.state { margin: 0; font-style: italic; }
+.pain {
+  margin: 0; font-size: 13.5px; background: var(--pain-soft); color: var(--ink);
+  border-radius: 6px; padding: 8px 10px;
+}
+.pain b { color: var(--pain); font-weight: 600; }
+.ref { font-family: var(--mono); font-size: 11.5px; color: var(--muted); }
+
+/* Today vs Velocity */
+.compare {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px;
+}
+.compare > div { border-radius: 10px; padding: 18px; min-width: 0; }
+.today { background: var(--pain-soft); }
+.future { background: var(--route-soft); }
+.compare h3 { font-family: var(--display); font-size: 15px; margin: 0 0 10px; }
+.today h3 { color: var(--pain); }
+.future h3 { color: var(--route); }
+.compare ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 14px; }
+.kpi {
+  font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 13px; color: var(--muted); margin: 10px 0 0;
+}
+
+/* Advantages */
+.adv {
+  list-style: none; margin: 16px 0 0; padding: 0;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px;
+}
+.adv li {
+  border-top: 3px solid var(--route); padding-top: 12px; min-width: 0;
+}
+.adv b { display: block; font-family: var(--display); font-size: 16px; margin-bottom: 4px; }
+.adv span { color: var(--muted); font-size: 14px; }
+
+.caveat {
+  border: 1px dashed var(--pain); border-radius: 10px; padding: 14px 16px; font-size: 14px;
+}
+.caveat b { color: var(--pain); }
+footer { color: var(--muted); font-size: 12.5px; }
+
+@media (max-width: 900px) {
+  .brief { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stages { grid-template-columns: minmax(0, 1fr); gap: 22px; padding-left: 64px; }
+  .stages::before { left: 21px; right: auto; top: 22px; bottom: 22px; width: 4px; height: auto; }
+  .node { position: absolute; left: -64px; top: 0; }
+  .adv { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 560px) {
+  .brief, .compare { grid-template-columns: minmax(0, 1fr); }
+}
+</style>
+
+<main class="page">
+  <header>
+    <p class="eyebrow">RouteLogic Velocity · Future-state journey</p>
+    <h1>The dispatcher runs the day from one tool again</h1>
+    <p class="lede">A live re-route goes from five manual steps across four tools to four stages inside Velocity. This is the target experience, a hypothesis to validate, built on the Module 2 research.</p>
+  </header>
+
+  <dl class="brief">
+    <div><dt>Persona</dt><dd>Fleet dispatcher (primary) and delivery driver (co-persona)</dd></div>
+    <div><dt>Goal</dt><dd>Seamless orchestration of route management</dd></div>
+    <div><dt>Friction</dt><dd>The product is paid for but has lost the job of running the day</dd></div>
+    <div><dt>Strategy</dt><dd>Strip legacy noise and make every change reach the driver in seconds</dd></div>
+  </dl>
+
+  <section aria-labelledby="t-journey">
+    <h2 id="t-journey">Four stages of a live re-route</h2>
+    <p class="section-note">Each user action is written as Action <span class="arrow">→</span> Benefit.</p>
+    <ol class="stages">
+      <li class="stage">
+        <span class="node" aria-hidden="true">1</span>
+        <div class="card">
+          <h3>Spot the exception</h3>
+          <div class="field"><span class="label">User action</span>
+            <p class="action">Live board flags the late stop <span class="arrow">→</span> spots it without asking in chat</p></div>
+          <div class="field"><span class="label">Internal state</span>
+            <p class="state">“I can see it. I don't have to ask.”</p></div>
+          <div class="field"><span class="label">Pain point addressed</span>
+            <p class="pain"><b>Board lags 20–60 min</b>, shows delivered stops as “in progress” <span class="ref">BUG-2072 · UXR-09</span></p></div>
+        </div>
+      </li>
+      <li class="stage">
+        <span class="node" aria-hidden="true">2</span>
+        <div class="card">
+          <h3>Re-route in one move</h3>
+          <div class="field"><span class="label">User action</span>
+            <p class="action">Drags the stop to a nearby driver from home <span class="arrow">→</span> no menus to dig through</p></div>
+          <div class="field"><span class="label">Internal state</span>
+            <p class="state">“That was one step.”</p></div>
+          <div class="field"><span class="label">Pain point addressed</span>
+            <p class="pain"><b>Core actions buried 2–3 levels deep</b> under features nobody uses <span class="ref">BUG-2079 · UXR-04 · UXR-11</span></p></div>
+        </div>
+      </li>
+      <li class="stage">
+        <span class="node" aria-hidden="true">3</span>
+        <div class="card">
+          <h3>The driver gets it now</h3>
+          <div class="field"><span class="label">User action</span>
+            <p class="action">Change pushes to the driver, who taps accept <span class="arrow">→</span> confirmed in seconds</p></div>
+          <div class="field"><span class="label">Internal state</span>
+            <p class="state">“Done once, and it landed.”</p></div>
+          <div class="field"><span class="label">Pain point addressed</span>
+            <p class="pain"><b>8–15 min lag, no push</b>, so every change is re-sent in WhatsApp <span class="ref">BUG-2044 · UXR-02</span></p></div>
+        </div>
+      </li>
+      <li class="stage">
+        <span class="node" aria-hidden="true">4</span>
+        <div class="card">
+          <h3>Trust the board</h3>
+          <div class="field"><span class="label">User action</span>
+            <p class="action">Driver closes the stop in one tap <span class="arrow">→</span> board updates live</p>
+            <p class="action">Admin reporting sits one layer away <span class="arrow">→</span> enterprise value kept, noise gone</p></div>
+          <div class="field"><span class="label">Internal state</span>
+            <p class="state">“The board is the truth. I can mute the WhatsApp group.”</p></div>
+          <div class="field"><span class="label">Pain point addressed</span>
+            <p class="pain"><b>3 screens to mark delivered</b>, so confirmations come by text <span class="ref">BUG-2055 · UXR-01 · UXR-12</span></p></div>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <section class="compare" aria-label="Today versus Velocity">
+    <div class="today">
+      <h3>Today: the workaround</h3>
+      <ul>
+        <li>Reassign in RouteLogic, then re-send in WhatsApp</li>
+        <li>Collect confirmations by text</li>
+        <li>Check status in chat, not on the board</li>
+        <li>Recover crashed routes by phone</li>
+      </ul>
+      <p class="kpi">5 manual steps · 4 tools · 8–15 min until the driver sees it</p>
+    </div>
+    <div class="future">
+      <h3>Velocity: the future state</h3>
+      <ul>
+        <li>Spot, re-route, confirm and close in one workspace</li>
+        <li>Driver confirms with one tap</li>
+        <li>The board is the record</li>
+        <li>Enterprise features one layer away, not removed</li>
+      </ul>
+      <p class="kpi">4 stages · 1 tool · target: seconds to the driver</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="t-adv">
+    <h2 id="t-adv">Three advantages over the manual workaround</h2>
+    <ol class="adv">
+      <li><b>One entry, not two</b><span>A change made once reaches the driver. WhatsApp always needs a second send.</span></li>
+      <li><b>One record everyone trusts</b><span>Live status replaces chat threads nobody can search, audit or hand over between shifts.</span></li>
+      <li><b>It feeds what customers pay for</b><span>Taps land in the admin reporting that sold the product (UXR-10). Texts never do.</span></li>
+    </ol>
+  </section>
+
+  <p class="caveat"><b>Dependency:</b> stripping legacy noise fixes stages 2 and 4. Stage 3, the heart of the hook, needs the sync fix behind BUG-2044, which is why reliability is part of the strategy.<br><br><b>Out of scope:</b> mid-route crashes (BUG-2031), offline mode (BUG-2050) and photo upload failures (BUG-2061). They hurt the driver but don't cause the re-route loop. Crash rate is tracked as a guardrail.</p>
+
+  <footer>Sources: Module 2 user research (UXR-01 to UXR-12) and bug reports (BUG-2031 to BUG-2090). Internal states are written as the target experience, not research quotes. “Seconds” is a target, not a measured figure.</footer>
+</main>
