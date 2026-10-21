@@ -1,17 +1,39 @@
-# Hypothesis & Success Metrics
+# Hypothesis & Success Metrics (Module 3)
 
 > **Module 3 · ★ Deliverable 3.** Repo file `03-analytics/hypothesis-and-metrics.md` — part of your submission.
-> Do the lab in the **Module 3 · Exercise Guide** (linked from the Module 3 deck), then click **⬇ Download .md** — it saves as this exact file. Commit it here.
 > It feeds the **Problem, Value & Hypothesis** slide of your Module 6 final deck.
 
-## Finalized product hypothesis
+## Pre-work · Hypothesis check
+- **Role, who you are solving for (from M2):** A fleet dispatcher at a mid-size 3PL who assigns and re-routes drivers in real time across a shift, with the delivery driver as co-persona: a re-route only works if the driver receives and confirms it.
+- **Goal, what this user is ultimately trying to achieve:** Seamless route orchestration: change a route once, know the driver has it right away, and trust that the board reflects what is happening on the road.
+- **Friction / moment of misery, the specific pain blocking their goal:** A reassignment takes 8–15 minutes to reach the driver, with no push notification (BUG-2044), and the board shows "in progress" for stops delivered up to an hour ago (BUG-2072). The dispatcher can't trust RouteLogic to run the live day.
+- **Current workaround, the external tool or manual process they rely on (M2):** A WhatsApp group, "the real system" (UXR-02): the dispatcher re-sends every change there or calls the driver, and collects delivery confirmations by text (UXR-01). Drivers keep route screenshots (UXR-06) and paper manifests (5 of 7 focus-group drivers, UXR-12).
+- **Problem Hook, your one-sentence framing of the business crisis (M1):** We must stop our largest accounts from switching to leaner competitors by making a live re-route reach the driver in seconds, so dispatchers no longer run the day from a WhatsApp group.
+- **Value Proposition, the outcome your initiative promised to deliver (M1):** For regional fleet dispatchers and the drivers they coordinate, a focused Velocity workspace where a re-route reaches the driver in seconds and is confirmed in one tap, with the enterprise features kept one layer away rather than removed, because an enterprise account is already evaluating a leaner competitor and renewal is at risk now.
 
-> Based on [qual + quant evidence], I believe that [solving X] for [persona] will result in [outcome], as measured by a [X%] change in [success metric]. I will protect [guardrail metric] and make a go/no-go decision after [decision window].
+## Read your data snapshots
+
+_Scenario B · RouteLogic. The funnel, retention and LTV questions belong to the StreamLine scenario and don't apply. In the snapshots, "Coordinators" is the dispatcher persona from M2._
+
+- **Snapshot 1 · Does the low adoption confirm your persona is burdened by tools they don't use? Does the 42% scheduling adoption for coordinators match your M2 moment of misery?:** Partly. Coordinators are burdened by tools they don't use: Financial Reporting 8%, AI Predictive ETAs 23%, Shift Scheduling 42%. That fits the M2 finding that frontline users touch only about 5% of the product (UXR-04). But the 42% scheduling gap is not my M2 moment of misery. My friction lives in the Live Dispatch Board, which coordinators use the most (91%; drivers 88%). **Pivot check:** the persona is highly active in the feature I labelled as friction. So the problem isn't avoidance. The core feature they rely on doesn't close the loop with the driver, and WhatsApp runs alongside it instead of being replaced by it.
+- **Snapshot 2 · Does the workflow data match the manual process documented in M2? Do the drop-offs or time gaps explain why the persona avoids the digital tool?:** It confirms the pattern, and widens it. Only 18% of coordinators finish the daily dispatch workflow in RouteLogic. The step closest to my M2 friction, Assign Routes via Optimizer, takes 8.2 min vs. a 4.0 benchmark (+4.2 min), and 29% never complete it in-tool. The largest measured gap is right after it: Log Compliance Checks takes 14.6 min vs. 3.0 (+11.6 min), with the steepest drop-off in the funnel (71% → 48%). **Pivot check:** compliance, not re-routing alone, is the main driver of the 31 minutes lost per day. Re-route propagation (8–15 min, BUG-2044) isn't measured here. So I reframe the problem as the coordinator's assignment loop: assign or re-route, get the driver's confirmation, and close the mandatory checks, all in one flow. Today that loop breaks right after assignment, and the rest of the day moves to WhatsApp.
+- **Snapshot 3 · Which CSAT heatmap cell most directly maps to your persona's friction? How does the NPS trend justify the urgency of the M1 Problem Hook?:** Coordinators × Compliance (2.2, Weak) is the cell that maps to the broken loop. Coordinators × Core Dispatch scores 4.1 (Strong), which confirms the pivot: they value the dispatch board, and the pain sits in what surrounds it. Reporting (1.3) is low but out of scope, since coordinators barely use it (8%). The NPS trend fully justifies the M1 urgency: coordinator NPS fell 30 points (+18 → −12), daily time lost to manual workarounds rose from ~9 to 31 min (3.4×), and 4 of 5 churned accounts now cite complexity (vs. 1 of 8 two years ago). The Velocity pilot's +34% route-assign speed supports the focused-workspace direction.
+
+## Step 3 · Craft your hypothesis
+- **Qualitative evidence (from M2), the specific friction / moment of misery:** "I reassign a route and the driver doesn't see it for ten, fifteen minutes. By then they've driven the wrong way. We keep a WhatsApp group as the real system." (UXR-02, fleet dispatcher, mid-size 3PL)
+- **Quantitative evidence (from M3), the metric or data point that confirms the pain:** Only 18% of coordinators finish the daily dispatch workflow in RouteLogic. The loop breaks right after assignment: Assign Routes takes 8.2 min vs. a 4.0 benchmark, and Log Compliance Checks takes 14.6 min vs. 3.0, the steepest drop-off (71% → 48%). Coordinators lose 31 min a day to manual workarounds (up from ~9).
+- **Persona, role, goal, and the friction confirmed in the reconciliation steps:** A fleet coordinator (dispatcher) at a mid-size 3PL. Goal: run the live day from one tool. Confirmed friction: they rely on the dispatch board (91% DAU, CSAT 4.1), but the loop around it (assign, get the driver's confirmation, close compliance) is slow and gets abandoned after assignment.
+- **Problem you are solving, one sentence:** Coordinators can't close the live assignment loop inside RouteLogic: assignments take twice the benchmark, don't reach the driver in real time, and mandatory compliance takes 5× longer, so they finish the day in WhatsApp.
+- **Strategic outcome, expected behaviour change and its link to retention / revenue / churn:** Coordinators run the full day in RouteLogic instead of WhatsApp. This maps to churn: 4 of 5 churned accounts cite complexity, and an enterprise account is evaluating a leaner competitor with renewal at risk (UXR-04, UXR-10).
+- **Primary success metric (initiative signal):** Daily workflow completion in-tool among pilot coordinators, from 18% to 36% (2×). Secondary: daily minutes lost to manual workarounds, from 31 to 15 or less.
+- **Guardrail metric (product signal):** Managers × Reporting CSAT stays at or above 4.3 (today 4.5). Reporting is why enterprise buyers bought RouteLogic, and Velocity must not degrade it.
+- **Decision window, time or data before scale / pivot / kill; minimum threshold to proceed:** An 8-week pilot with coordinators, extending the current Velocity pilot. Scale if completion reaches 30% or more and the guardrail holds; pivot if completion improves but stays below 30%; kill or roll back if the guardrail breaks.
+- **Full hypothesis sentence:** Based on dispatchers running the day from a WhatsApp group (UXR-02) and only 18% of coordinators finishing their daily workflow in RouteLogic, I believe that a focused Velocity workspace that closes the assignment loop (the re-route reaches the driver in seconds and compliance is logged in the same flow) will move coordinators back into RouteLogic and reduce complexity-driven churn, as measured by a 2× increase in in-tool workflow completion (18% → 36%). I will protect Manager Reporting CSAT (≥ 4.3) and make a go/no-go decision after an 8-week pilot.
 
 ## Success metrics
 
-| Metric | Type | Target | Why it matters |
-|---|---|---|---|
-| _North-star_ | | _____ | _____ |
-| _Leading indicator_ | | _____ | _____ |
-| _Guardrail_ | | _____ | _____ |
+| Metric | Type | Baseline | Target | Why it matters |
+|---|---|---|---|---|
+| In-tool daily workflow completion (coordinators) | Primary / leading | 18% | 36% | Shows coordinators closing the loop in RouteLogic instead of WhatsApp |
+| Daily minutes lost to manual workarounds | Secondary | 31 min | ≤ 15 min | The cost of the workaround, linked to the NPS collapse |
+| Managers × Reporting CSAT | Guardrail | 4.5 | ≥ 4.3 | Protects the enterprise buyers' reason to stay |
