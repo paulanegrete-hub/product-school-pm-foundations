@@ -46,7 +46,7 @@ _Read your hook back as a skeptical stakeholder. If you don't feel the urgency, 
 
 ## 7. Finalized hypothesis _(complete in Module 3)_
 
-> Based on dispatchers running the day from a WhatsApp group (UXR-02) and only 18% of coordinators finishing their daily workflow in RouteLogic, I believe that a focused Velocity workspace that closes the assignment loop (the re-route reaches the driver in seconds and compliance is logged in the same flow) will move coordinators back into RouteLogic and reduce complexity-driven churn, as measured by a 2× increase in in-tool workflow completion (18% → 36%). I will protect Manager Reporting CSAT (≥ 4.3) and make a go/no-go decision after an 8-week pilot.
+> Based on dispatchers running the day from a WhatsApp group (UXR-02) and only 18% of coordinators finishing their daily workflow in RouteLogic, I believe that a focused Velocity workspace that closes the assignment loop (the re-route reaches the driver in seconds and compliance is logged in the same flow) will move coordinators back into RouteLogic and reduce complexity-driven churn, as measured by a 2× increase in in-tool workflow completion (18% → 36%). I will protect Manager Reporting CSAT (≥ 4.3) and make a go/no-go decision at week 8 (a 4-week pilot followed by 4 weeks of GA).
 
 _Completed in Module 3; full reasoning in [`03-analytics/hypothesis-and-metrics.md`](../03-analytics/hypothesis-and-metrics.md)._
 

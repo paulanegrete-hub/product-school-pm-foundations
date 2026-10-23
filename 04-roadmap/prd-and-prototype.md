@@ -6,9 +6,9 @@
 
 ## Responses
 
-- **The "Now" feature I'm scoping (name + one-line core description):** _(not filled in)_
-- **My finalized Must-Haves (after overriding the AI):** _(not filled in)_
-- **What I demoted from Must → Should/Won't, and why:** _(not filled in)_
-- **One thing my PRD makes explicit that a vague brief would have missed:** _(not filled in)_
-- **Where the prototype revealed a gap in my PRD logic (what I updated):** _(not filled in)_
-- **My shareable prototype URL:** _(not filled in)_
+- **The "Now" feature I'm scoping (name + one-line core description):** B6 Driver Alert Notifications: a re-route reaches the driver's phone in seconds and is confirmed in one tap, so the coordinator stops re-sending it on WhatsApp. Full PRD: [`prd-b6-driver-alerts.md`](prd-b6-driver-alerts.md).
+- **My finalized Must-Haves (after overriding the AI):** Push on re-route (≤ 5 s vs. 8–15 min today) · deep link to the updated route · one-tap confirm · Sent / Delivered / Confirmed status on the board · event logging of every status change. I promoted event logging from Should to Must: it doesn't touch the moment of misery directly, but without it the pilot can't be measured.
+- **What I demoted from Must → Should/Won't, and why:** Compliance flag alerts, which are part of the B6 backlog description, moved to Won't (now). They depend on B1 (NEXT), and mixing them in would blur the one signal the pilot tests: does the re-route reach the driver? SMS fallback went to Could (V2): it needs an external provider, which 2 engineers can't absorb in 4 weeks.
+- **One thing my PRD makes explicit that a vague brief would have missed:** What the alert is allowed to say. A vague brief says "notify the driver." My PRD says the alert text comes only from fields in the route record, nothing is generated, and a stop with missing data blocks the alert instead of sending a guess. In a moving vehicle, a wrong address is worse than a late one.
+- **Where the prototype revealed a gap in my PRD logic (what I updated):** Two gaps. (1) Cancel only lived in Edge Cases, but building the board showed the coordinator needs a visible Cancel action on every pending re-route, so I added it as FR8. (2) The PRD didn't say what happens when a phone gets signal back after the 2-minute flag. The prototype delivers the alert on reconnect and keeps the flag until the driver confirms, and I added that rule to Smart Behaviors.
+- **My shareable prototype URL:** [`04-roadmap/prototype-b6-driver-alerts.html`](prototype-b6-driver-alerts.html) (in this repo; opens in any browser).

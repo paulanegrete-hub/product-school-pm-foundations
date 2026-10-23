@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Velocity Roadmap</title>
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --surface: #ffffff;
+    --surface-2: #f0f2f5;
+    --text: #14181f;
+    --muted: #5b6573;
+    --border: #e1e5ea;
+    --brand: #1f4fd1;
+    --brand-soft: #e7eeff;
+    --qw: #0f7b4a;      --qw-bg: #e3f5ec;
+    --mp: #1f4fd1;      --mp-bg: #e7eeff;
+    --fi: #8a5a00;      --fi-bg: #fdf1d8;
+    --ts: #b42318;      --ts-bg: #fde7e5;
+    --shadow: 0 1px 2px rgba(16,24,40,.06), 0 1px 3px rgba(16,24,40,.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1216; --surface: #171b21; --surface-2: #1e232b;
+      --text: #e9edf2; --muted: #9aa4b2; --border: #2a3039;
+      --brand: #7ea2ff; --brand-soft: #1c2747;
+      --qw: #5fd39a; --qw-bg: #12301f;
+      --mp: #7ea2ff; --mp-bg: #1c2747;
+      --fi: #f0c15c; --fi-bg: #33280f;
+      --ts: #ff8a7a; --ts-bg: #3a1915;
+      --shadow: none;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f1216; --surface: #171b21; --surface-2: #1e232b;
+    --text: #e9edf2; --muted: #9aa4b2; --border: #2a3039;
+    --brand: #7ea2ff; --brand-soft: #1c2747;
+    --qw: #5fd39a; --qw-bg: #12301f;
+    --mp: #7ea2ff; --mp-bg: #1c2747;
+    --fi: #f0c15c; --fi-bg: #33280f;
+    --ts: #ff8a7a; --ts-bg: #3a1915;
+    --shadow: none;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 32px 16px 56px; }
+  header { display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: flex-end; }
+  .eyebrow { color: var(--brand); font-weight: 600; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; }
+  h1 { margin: 4px 0 6px; font-size: 30px; line-height: 1.15; letter-spacing: -.01em; }
+  .sub { color: var(--muted); margin: 0; max-width: 640px; }
+  .team { color: var(--muted); font-size: 13px; text-align: right; }
+  .team b { color: var(--text); font-weight: 600; }
+
+  .anchors { margin: 24px 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .anchor { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; box-shadow: var(--shadow); }
+  .anchor .k { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; font-weight: 600; }
+  .anchor .v { margin-top: 4px; font-size: 14px; }
+  .anchor .v strong { font-size: 18px; }
+
+  .toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 8px 0 16px; }
+  .toolbar span { color: var(--muted); font-size: 13px; margin-right: 4px; }
+  .chip {
+    border: 1px solid var(--border); background: var(--surface); color: var(--text);
+    border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer;
+  }
+  .chip[aria-pressed="true"] { background: var(--text); color: var(--bg); border-color: var(--text); }
+  .chip:focus-visible, .card:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+  .spacer { flex: 1; }
+
+  .lanes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .lane { background: var(--surface-2); border-radius: 14px; padding: 14px; min-height: 120px; }
+  .lane-head { display: flex; justify-content: space-between; align-items: baseline; margin: 2px 4px 12px; }
+  .lane-head h2 { margin: 0; font-size: 15px; letter-spacing: .04em; }
+  .lane-head .when { color: var(--muted); font-size: 12px; }
+  .lane.now .lane-head h2 { color: var(--qw); }
+  .lane.next .lane-head h2 { color: var(--mp); }
+  .lane.later .lane-head h2 { color: var(--muted); }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px; margin-bottom: 10px; box-shadow: var(--shadow); cursor: pointer;
+    transition: transform .12s ease, border-color .12s ease;
+  }
+  .card:hover { transform: translateY(-1px); border-color: var(--brand); }
+  .card.hidden { display: none; }
+  .card-top { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+  .id { color: var(--muted); font-size: 12px; font-weight: 600; }
+  .name { font-weight: 600; margin: 2px 0 6px; }
+  .why { color: var(--muted); font-size: 13.5px; margin: 0; }
+  .badge { white-space: nowrap; font-size: 11.5px; font-weight: 600; padding: 3px 8px; border-radius: 999px; }
+  .b-qw { color: var(--qw); background: var(--qw-bg); }
+  .b-mp { color: var(--mp); background: var(--mp-bg); }
+  .b-fi { color: var(--fi); background: var(--fi-bg); }
+  .b-ts { color: var(--ts); background: var(--ts-bg); }
+  .details { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); font-size: 13px; }
+  .card.open .details { display: block; }
+  .scores { display: flex; gap: 14px; margin-bottom: 6px; }
+  .scores b { font-size: 15px; }
+  .meter { display: inline-flex; gap: 3px; vertical-align: middle; margin-left: 4px; }
+  .meter i { width: 8px; height: 8px; border-radius: 2px; background: var(--border); display: inline-block; }
+  .meter i.on { background: var(--text); }
+  .origin { color: var(--muted); }
+
+  .cut { margin-top: 28px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; }
+  .cut h2 { margin: 0 0 4px; font-size: 15px; letter-spacing: .04em; color: var(--ts); }
+  .cut p.lead { margin: 0 0 14px; color: var(--muted); font-size: 13.5px; }
+  .cut-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .cut .card { margin: 0; background: var(--surface-2); box-shadow: none; }
+  .cut .card .name { text-decoration: line-through; text-decoration-color: var(--ts); text-decoration-thickness: 1.5px; }
+
+  .legend { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 14px; color: var(--muted); font-size: 12.5px; }
+  footer { margin-top: 10px; color: var(--muted); font-size: 12px; }
+
+  @media (max-width: 900px) {
+    .anchors { grid-template-columns: repeat(2, 1fr); }
+    .lanes { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 560px) {
+    h1 { font-size: 24px; }
+    .anchors, .cut-grid { grid-template-columns: 1fr; }
+    .team { text-align: left; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">RouteLogic Velocity · Roadmap</div>
+      <h1>Close the coordinator's assignment loop</h1>
+      <p class="sub">Re-route first, compliance next: coordinators run the full day in RouteLogic instead of a WhatsApp group.</p>
+    </div>
+    <div class="team">Team<br><b>2 engineers · 1 designer · 1 CS lead</b></div>
+  </header>
+
+  <section class="anchors" aria-label="Strategic anchors">
+    <div class="anchor"><div class="k">Persona</div><div class="v">Fleet coordinator at a mid-size 3PL; the driver is co-persona</div></div>
+    <div class="anchor"><div class="k">Primary metric</div><div class="v">In-tool workflow completion <strong>18% → 36%</strong></div></div>
+    <div class="anchor"><div class="k">Moment of misery</div><div class="v">Re-route takes 8–15 min to reach the driver (BUG-2044)</div></div>
+    <div class="anchor"><div class="k">Guardrail</div><div class="v">Managers × Reporting CSAT <strong>≥ 4.3</strong></div></div>
+  </section>
+
+  <div class="toolbar" role="toolbar" aria-label="Filter by quadrant">
+    <span>Filter</span>
+    <button class="chip" data-filter="all" aria-pressed="true">All</button>
+    <button class="chip" data-filter="qw" aria-pressed="false">Quick Win</button>
+    <button class="chip" data-filter="mp" aria-pressed="false">Major Project</button>
+    <button class="chip" data-filter="fi" aria-pressed="false">Fill-In</button>
+    <button class="chip" data-filter="ts" aria-pressed="false">Time Sinker</button>
+    <div class="spacer"></div>
+    <button class="chip" id="toggleAll" aria-pressed="false">Show scores</button>
+  </div>
+
+  <section class="lanes">
+    <div class="lane now"><div class="lane-head"><h2>NOW</h2><span class="when">Pilot · 4 weeks · 3 accounts</span></div><div data-lane="now"></div></div>
+    <div class="lane next"><div class="lane-head"><h2>NEXT</h2><span class="when">GA release · weeks 5–8</span></div><div data-lane="next"></div></div>
+    <div class="lane later"><div class="lane-head"><h2>LATER</h2><span class="when">Backlog</span></div><div data-lane="later"></div></div>
+  </section>
+
+  <section class="cut">
+    <h2>CUT LIST</h2>
+    <p class="lead">Not on the roadmap: none of these move the coordinator's loop enough to justify 2 engineers' time.</p>
+    <div class="cut-grid" data-lane="cut"></div>
+  </section>
+
+  <div class="legend">
+    <span><span class="badge b-qw">Quick Win</span> high value, low effort</span>
+    <span><span class="badge b-mp">Major Project</span> high value, high effort</span>
+    <span><span class="badge b-fi">Fill-In</span> low value, low effort</span>
+    <span><span class="badge b-ts">Time Sinker</span> low value, high effort</span>
+  </div>
+  <footer>Click a card for value, effort and origin. Scores: 1–5 · Value ≥ 4 = high · Effort ≤ 2 = fits the pilot.</footer>
+</div>
+
+<script>
+const Q = {
+  qw: { label: "Quick Win", cls: "b-qw" },
+  mp: { label: "Major Project", cls: "b-mp" },
+  fi: { label: "Fill-In", cls: "b-fi" },
+  ts: { label: "Time Sinker", cls: "b-ts" }
+};
+
+const FEATURES = [
+  { id: "B6", lane: "now", q: "qw", v: 5, e: 2, origin: "M2 Interview",
+    name: "Driver Alert Notifications",
+    why: "Kills the moment of misery: the re-route reaches the driver in seconds, so WhatsApp leaves the loop." },
+  { id: "B5", lane: "now", q: "qw", v: 4, e: 1, origin: "M3 Funnel",
+    name: "Step Progress Indicator",
+    why: "91% open the board but only 18% finish; showing the next step targets abandonment after assignment, for days of work." },
+  { id: "B1", lane: "next", q: "mp", v: 5, e: 3, origin: "M3 Data",
+    name: "One-Click Compliance Checklist",
+    why: "Largest measured gap (14.6 vs 3.0 min) and steepest drop-off (71% → 48%); too big to build alongside B6 in the pilot, so it ships first in GA." },
+  { id: "B4", lane: "next", q: "mp", v: 4, e: 5, origin: "M2 Journey",
+    name: "Mobile-First Coordinator Dashboard",
+    why: "Puts dispatch and compliance in 2 taps, built on B6 + B1 once they are validated." },
+  { id: "B9", lane: "later", q: "fi", v: 2, e: 2, origin: "Legal / CS",
+    name: "Compliance Audit Trail Export",
+    why: "Only useful once B1 captures compliance data; coordinators' pain is logging checks, not exporting them." },
+  { id: "B10", lane: "later", q: "fi", v: 1, e: 1, origin: "CS",
+    name: "In-App Coordinator Training",
+    why: "The CS lead onboards the 3 pilot accounts by hand; worth building only when Velocity scales." },
+  { id: "B2", lane: "cut", q: "ts", v: 2, e: 4, origin: "M3 Data",
+    name: "Smart Daily Report Auto-Fill",
+    why: "Costly AI work outside the loop that touches Reporting and puts the guardrail at risk." },
+  { id: "B3", lane: "cut", q: "fi", v: 3, e: 3, origin: "M2 UXR",
+    name: "Shift Handoff Wizard",
+    why: "Saves ~6.8 min/day but sits outside the assignment loop; the team can't afford it next to B1." },
+  { id: "B7", lane: "cut", q: "ts", v: 1, e: 4, origin: "M3 Adoption",
+    name: "Contextual AI ETA Display",
+    why: "11% adoption and not the confirmed friction: AI polish on a feature coordinators ignore." },
+  { id: "B8", lane: "cut", q: "ts", v: 1, e: 5, origin: "Sales",
+    name: "Fleet Analytics Manager View",
+    why: "Sales-driven exec view with no impact on the coordinator; it would take engineers away from the loop." }
+];
+
+const meter = n => '<span class="meter">' + [1,2,3,4,5].map(i => `<i class="${i <= n ? "on" : ""}"></i>`).join("") + "</span>";
+
+FEATURES.forEach(f => {
+  const el = document.createElement("article");
+  el.className = "card";
+  el.tabIndex = 0;
+  el.dataset.q = f.q;
+  el.setAttribute("aria-expanded", "false");
+  el.innerHTML = `
+    <div class="card-top">
+      <div><div class="id">${f.id}</div><div class="name">${f.name}</div></div>
+      <span class="badge ${Q[f.q].cls}">${Q[f.q].label}</span>
+    </div>
+    <p class="why">${f.why}</p>
+    <div class="details">
+      <div class="scores"><span>Value <b>${f.v}</b>${meter(f.v)}</span><span>Effort <b>${f.e}</b>${meter(f.e)}</span></div>
+      <div class="origin">Origin: ${f.origin}</div>
+    </div>`;
+  const toggle = () => {
+    el.classList.toggle("open");
+    el.setAttribute("aria-expanded", el.classList.contains("open"));
+  };
+  el.addEventListener("click", toggle);
+  el.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } });
+  document.querySelector(`[data-lane="${f.lane}"]`).appendChild(el);
+});
+
+document.querySelectorAll("[data-filter]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("[data-filter]").forEach(b => b.setAttribute("aria-pressed", b === btn));
+    const f = btn.dataset.filter;
+    document.querySelectorAll(".card").forEach(c => c.classList.toggle("hidden", f !== "all" && c.dataset.q !== f));
+  });
+});
+
+const all = document.getElementById("toggleAll");
+all.addEventListener("click", () => {
+  const on = all.getAttribute("aria-pressed") !== "true";
+  all.setAttribute("aria-pressed", on);
+  all.textContent = on ? "Hide scores" : "Show scores";
+  document.querySelectorAll(".card").forEach(c => {
+    c.classList.toggle("open", on);
+    c.setAttribute("aria-expanded", on);
+  });
+});
+</script>
+</body>
+</html>
