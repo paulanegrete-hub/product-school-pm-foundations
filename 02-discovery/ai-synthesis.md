@@ -6,9 +6,9 @@
 
 ## Responses
 
-- **Moment of misery / red flag #1:** _(not filled in)_
-- **Moment of misery / red flag #2:** _(not filled in)_
-- **Moment of misery / red flag #3:** _(not filled in)_
+- **Moment of misery / red flag #1:** A re-route takes 8–15 min to reach the driver, with no push notification. The driver keeps driving the wrong way, so the dispatcher re-sends every change in a WhatsApp group that has become "the real system" (BUG-2044, UXR-02).
+- **Moment of misery / red flag #2:** The dispatcher board can't be trusted. Driver status lags 20–60 min, so stops delivered an hour ago still show "in progress" and the dispatcher checks status in chat instead (BUG-2072, UXR-09).
+- **Moment of misery / red flag #3:** On Android 12/13 the app crashes mid-route above ~40 stops and the rest of the route is lost. The office reads the stops to the driver by phone, about 20 min lost per crash (BUG-2031, UXR-03).
 - **Product Health & Insights Summary (Claude's output):**
 
   **Executive Summary**
@@ -42,8 +42,8 @@
   - **Insight:** 7 of 7 focus-group drivers rank speed of core actions above any new feature (UXR-12).
 
   **Minor Technical Debt:** GPS pin drift up to 200m in dense urban areas triggers false "arrived" detection (BUG-2085); onboarding tutorial cannot be reopened, and there is no in-app help for "report failed delivery" (BUG-2090).
-- **Did the AI catch the specific moment of misery / pain point you found in Step 1?:** _(not filled in)_
-- **Did it smooth over a critical frustration into a generic bullet point?:** _(not filled in)_
-- **Did the AI try to suggest features or a roadmap despite the constraints?:** _(not filled in)_
-- **Logic leak / hallucination #1:** _(not filled in)_
-- **Logic leak / hallucination #2:** _(not filled in)_
+- **Did the AI catch the specific moment of misery / pain point you found in Step 1?:** Mostly. It caught #1 (re-route lag) and #3 (crash) and marked both Critical. It kept #2 (board lag) at Medium because that's the bug's reported severity. It did add a note that the interviews suggest a bigger impact, but it didn't re-rank it, and for the dispatcher this is half of the moment of misery.
+- **Did it smooth over a critical frustration into a generic bullet point?:** Yes, the dispatcher's side. In the research the dispatcher does every change twice (once in RouteLogic for the record, then again in WhatsApp) and still can't trust the board. The summary breaks this into two sync bullets and one line in the workaround list, so the double entry, which is the real cost, never shows up as its own finding. The summary is also written mostly from the driver's view, because drivers have most of the notes (7 of 12).
+- **Did the AI try to suggest features or a roadmap despite the constraints?:** No roadmap or feature list. But some findings are worded as the missing fix ("no push notification", "no retry queue", "no configurable home screen"), which quietly points to a solution. I kept them as facts and didn't treat them as requirements.
+- **Logic leak / hallucination #1:** The executive summary says "every user group interviewed has built an off-platform workaround." That's an overgeneralization. Drivers and dispatchers did, but the admin/manager voice (UXR-10) praises the reporting and describes no workaround.
+- **Logic leak / hallucination #2:** It gives severity labels (Critical / High) to interview findings in section 5, e.g. "Critical: enterprise account evaluating a competitor." Only the bug tickets carry a severity. These labels were made up by the AI, which makes an interview signal look as measured as a bug ticket.
