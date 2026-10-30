@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RouteLogic Velocity</title>
+<style>
+:root{
+  --bg:#fbfbfd;--fg:#1d1d1f;--muted:#6e6e73;--faint:#a1a1a6;--line:#e5e5ea;--card:#ffffff;--soft:#f2f2f5;
+  --acc:#0066cc;--acc-soft:#e8f1fb;--ok:#1f8f4e;--ok-soft:#e7f5ec;--warn:#b25e00;--warn-soft:#fbf0e2;--bad:#c4302b;--bad-soft:#fbe9e8;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0b0b0d;--fg:#f5f5f7;--muted:#a1a1a6;--faint:#6e6e73;--line:#2c2c30;--card:#161618;--soft:#1c1c1f;
+  --acc:#4ea1ff;--acc-soft:#12233a;--ok:#4cc47f;--ok-soft:#10261a;--warn:#f0a44b;--warn-soft:#2a1d0c;--bad:#ff6b63;--bad-soft:#2c1312;
+}}
+:root[data-theme="dark"]{
+  --bg:#0b0b0d;--fg:#f5f5f7;--muted:#a1a1a6;--faint:#6e6e73;--line:#2c2c30;--card:#161618;--soft:#1c1c1f;
+  --acc:#4ea1ff;--acc-soft:#12233a;--ok:#4cc47f;--ok-soft:#10261a;--warn:#f0a44b;--warn-soft:#2a1d0c;--bad:#ff6b63;--bad-soft:#2c1312;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--fg);font:16px/1.55 -apple-system,BlinkMacSystemFont,"SF Pro Text","Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden}
+a{color:var(--acc);text-decoration:none}a:hover{text-decoration:underline}
+button{font:inherit;color:inherit}
+
+/* ---------- deck ---------- */
+.deck{position:fixed;inset:0}
+.slide{position:absolute;inset:0;overflow-y:auto;opacity:0;visibility:hidden;transform:translateY(12px);transition:opacity .45s ease,transform .45s ease,visibility .45s}
+.slide.on{opacity:1;visibility:visible;transform:none}
+.wrap{max-width:1080px;margin:0 auto;padding:88px 40px 120px;min-height:100%;display:flex;flex-direction:column;justify-content:center}
+.eyebrow{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--acc);margin-bottom:14px}
+h1,h2,h3{margin:0;letter-spacing:-.022em;font-weight:700}
+h1{font-size:clamp(44px,8vw,88px);line-height:1.02}
+h2{font-size:clamp(28px,4vw,44px);line-height:1.1;margin-bottom:14px}
+h3{font-size:17px;letter-spacing:-.01em;margin-bottom:6px}
+.lede{font-size:clamp(17px,1.9vw,21px);color:var(--muted);max-width:780px;margin:0 0 36px;line-height:1.45}
+.big{font-size:clamp(20px,2.4vw,28px);line-height:1.35;font-weight:600;letter-spacing:-.015em;max-width:900px;margin:0 0 34px}
+p{margin:0 0 10px}
+.muted{color:var(--muted)}.small{font-size:13.5px}
+.ref{color:var(--faint);font-size:.88em;white-space:nowrap}
+
+/* ---------- components ---------- */
+.wrap>*{min-width:0}
+.seg{align-self:flex-start;display:inline-flex;max-width:100%;background:var(--soft);border-radius:999px;padding:4px;gap:2px;margin-bottom:22px;flex-wrap:wrap}
+.seg button{border:0;background:transparent;padding:8px 16px;border-radius:999px;font-size:14px;font-weight:500;color:var(--muted);cursor:pointer;transition:background .2s,color .2s}
+.seg button[aria-selected="true"]{background:var(--card);color:var(--fg);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.pane{display:none;animation:fade .25s ease both}.pane.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px 26px}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.stat .n{font-size:clamp(30px,3.6vw,44px);font-weight:700;letter-spacing:-.03em;line-height:1}
+.stat .l{font-size:13.5px;color:var(--muted);margin-top:8px;line-height:1.4}
+.label{font-size:11.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+blockquote{margin:0;padding:0 0 0 18px;border-left:3px solid var(--acc);font-size:clamp(17px,1.8vw,20px);line-height:1.45;font-weight:500}
+blockquote cite{display:block;font-style:normal;font-size:13.5px;color:var(--muted);margin-top:8px;font-weight:400}
+ul.clean{list-style:none;margin:0;padding:0}
+ul.clean li{padding:10px 0;border-top:1px solid var(--line)}ul.clean li:first-child{border-top:0}
+ol.steps{margin:0;padding-left:20px}ol.steps li{margin-bottom:8px}
+table{width:100%;border-collapse:collapse;font-size:14.5px}
+th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:11.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+tr:last-child td{border-bottom:0}
+.tbl{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow-x:auto}
+.pill{display:inline-block;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--soft);color:var(--muted)}
+.pill.acc{background:var(--acc-soft);color:var(--acc)}.pill.ok{background:var(--ok-soft);color:var(--ok)}.pill.warn{background:var(--warn-soft);color:var(--warn)}.pill.bad{background:var(--bad-soft);color:var(--bad)}
+
+/* journey stages */
+.stages{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:16px}
+.stage{border:1px solid var(--line);background:var(--card);border-radius:14px;padding:14px;text-align:left;cursor:pointer;transition:border-color .2s,background .2s}
+.stage .k{font-size:12px;color:var(--muted);margin-bottom:4px}.stage .t{font-weight:600;font-size:14.5px;line-height:1.3}
+.stage.misery .k{color:var(--bad)}
+.stage[aria-selected="true"]{border-color:var(--acc);background:var(--acc-soft)}
+.detail{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+
+/* roadmap lanes */
+.lanes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:16px}
+.lane{border:1px solid var(--line);background:var(--card);border-radius:16px;padding:16px;text-align:left;cursor:pointer;transition:border-color .2s,background .2s}
+.lane .k{font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.lane .t{font-size:14px;margin-top:6px;line-height:1.4}
+.lane[aria-selected="true"]{border-color:var(--acc);background:var(--acc-soft)}
+.lane.cut .t{text-decoration:line-through;color:var(--faint)}
+
+/* decision */
+.dec{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:14px}
+.dec button{border:1px solid var(--line);background:var(--card);border-radius:14px;padding:14px;cursor:pointer;font-weight:600;text-align:left;transition:border-color .2s,background .2s}
+.dec button[data-k="ship"][aria-selected="true"]{border-color:var(--ok);background:var(--ok-soft);color:var(--ok)}
+.dec button[data-k="pivot"][aria-selected="true"]{border-color:var(--warn);background:var(--warn-soft);color:var(--warn)}
+.dec button[data-k="kill"][aria-selected="true"]{border-color:var(--bad);background:var(--bad-soft);color:var(--bad)}
+
+/* timeline */
+.tl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;position:relative;margin:6px 0 26px}
+.tl::before{content:"";position:absolute;left:8px;right:8px;top:7px;height:2px;background:var(--line)}
+.tl div{position:relative;padding:28px 18px 0 0}
+.tl div::before{content:"";position:absolute;left:0;top:0;width:16px;height:16px;border-radius:50%;background:var(--card);border:2px solid var(--acc)}
+.tl div:nth-child(2)::before{background:var(--acc)}
+
+/* insights */
+.ins{cursor:pointer}
+.ins .more{max-height:0;overflow:hidden;transition:max-height .45s ease;font-size:14.5px;color:var(--muted)}
+.ins.open .more{max-height:900px}
+.ins .hint{font-size:12.5px;color:var(--acc);margin-top:10px}
+.ins.open .hint{display:none}
+.aha{font-size:clamp(22px,2.8vw,32px);font-weight:700;letter-spacing:-.02em;line-height:1.2;margin-bottom:12px}
+
+/* hero */
+.hero .wrap{align-items:flex-start}
+.hero .sub{font-size:clamp(18px,2.2vw,24px);color:var(--muted);max-width:760px;margin:22px 0 40px;line-height:1.4}
+.hero .meta{display:flex;gap:28px;flex-wrap:wrap;font-size:14px;color:var(--muted)}
+.hero .meta b{display:block;color:var(--fg);font-weight:600}
+.cta{display:inline-flex;align-items:center;gap:8px;margin-top:44px;background:var(--fg);color:var(--bg);padding:12px 22px;border-radius:999px;font-weight:600;font-size:15px;border:0;cursor:pointer}
+.cta:hover{text-decoration:none;opacity:.88}
+
+/* chrome */
+.bar{position:fixed;left:0;top:0;height:3px;background:var(--acc);transition:width .45s ease;z-index:5}
+.nav{position:fixed;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:space-between;padding:14px 22px;background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:saturate(180%) blur(16px);-webkit-backdrop-filter:saturate(180%) blur(16px);border-top:1px solid var(--line);z-index:5}
+.dots{display:flex;gap:6px;flex-wrap:wrap}
+.dots button{width:8px;height:8px;border-radius:50%;border:0;background:var(--line);padding:0;cursor:pointer;transition:background .2s,width .2s}
+.dots button[aria-current="true"]{background:var(--acc);width:22px;border-radius:999px}
+.ctl{display:flex;align-items:center;gap:8px}
+.ctl .cnt{font-size:13px;color:var(--muted);min-width:64px;text-align:right;font-variant-numeric:tabular-nums}
+.ctl button{width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--card);cursor:pointer;display:grid;place-items:center}
+.ctl button:disabled{opacity:.35;cursor:default}
+.ttl{font-size:13px;color:var(--muted);display:none}
+@media (min-width:900px){.ttl{display:block}}
+
+@media (max-width:860px){
+  .g2,.g3,.g4,.detail,.dec{grid-template-columns:1fr}
+  .stages,.lanes{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .tl{grid-template-columns:1fr}.tl::before{display:none}.tl div{padding:0 0 18px 28px}
+  .wrap{padding:64px 16px 110px;justify-content:flex-start}
+  .card{padding:20px}
+}
+@media print{
+  body{overflow:visible}.deck{position:static}.nav,.bar{display:none}
+  .slide{position:static;opacity:1;visibility:visible;transform:none;page-break-after:always;overflow:visible}
+  .pane{display:block}.ins .more{max-height:none}
+}
+@media (prefers-reduced-motion:reduce){.slide,.pane,.ins .more{transition:none;animation:none}}
+</style>
+</head>
+<body>
+<div class="bar" id="bar"></div>
+<main class="deck" id="deck">
+
+<!-- 0 · Title -->
+<section class="slide hero" data-title="RouteLogic Velocity">
+  <div class="wrap">
+    <div class="eyebrow">Product Management Foundations · Final Project</div>
+    <h1>RouteLogic<br>Velocity</h1>
+    <p class="sub">A focused workspace for regional fleet dispatchers and their drivers. The bet: if a live re-route reaches the driver in seconds and closes in one tap, dispatchers stop running the day from WhatsApp, and our largest accounts stay.</p>
+    <div class="meta">
+      <div><b>Paula Negrete</b>Product Manager</div>
+      <div><b>B6 Driver Alerts</b>Feature in focus</div>
+      <div><b>18% → 36%</b>In-tool workflow completion</div>
+    </div>
+    <button class="cta" data-go="1">Start →</button>
+  </div>
+</section>
+
+<!-- 1 · Problem Hook -->
+<section class="slide" data-title="Problem Hook &amp; Value Proposition">
+  <div class="wrap">
+    <div class="eyebrow">01 · Module 1 · Problem Hook &amp; Value Proposition</div>
+    <h2>Problem hook</h2>
+    <p class="big">We must stop our largest accounts from switching to leaner competitors by making a live re-route reach the driver in seconds, so dispatchers no longer run the day from a WhatsApp group.</p>
+    <div class="seg" role="tablist" data-group="m1">
+      <button role="tab" aria-selected="true" data-pane="m1-a">Strategic crisis</button>
+      <button role="tab" aria-selected="false" data-pane="m1-b">Moment of misery</button>
+      <button role="tab" aria-selected="false" data-pane="m1-c">Value proposition</button>
+    </div>
+    <div class="pane on card" id="m1-a"><p>RouteLogic will lose its largest enterprise account to a leaner competitor, and others will follow. The people who run daily operations will move to faster tools. RouteLogic will be left as an expensive back-office system that nobody uses in real time. We will no longer be "the fastest tool on the market," just the most complicated one.</p></div>
+    <div class="pane card" id="m1-b"><p>When a delivery goes wrong mid-route, the dispatcher reassigns it in RouteLogic, but the driver doesn't see the change for 8–15 minutes and gets no notification. So the dispatcher sends it again in a WhatsApp group or calls the driver, and stops trusting the board. In one dispatcher's words: "We keep a WhatsApp group as the real system." Meanwhile, an enterprise account is evaluating a leaner competitor that "just does routing well."</p><p class="ref">UXR-02 · UXR-04 · BUG-2044</p></div>
+    <div class="pane card" id="m1-c"><p>For <b>regional fleet dispatchers and the drivers they coordinate</b>, we will <b>deliver a focused Velocity workspace where a re-route reaches the driver in seconds and is confirmed in one tap, with the enterprise features kept one layer away rather than removed</b>, because <b>an enterprise account is already evaluating a leaner competitor and renewal is at risk now</b>.</p></div>
+  </div>
+</section>
+
+<!-- 2 · Hypothesis -->
+<section class="slide" data-title="Data-Backed Hypothesis">
+  <div class="wrap">
+    <div class="eyebrow">02 · Module 3 · Data-Backed Hypothesis</div>
+    <h2>The loop breaks right after assignment</h2>
+    <p class="lede">Coordinators can't close the live assignment loop inside RouteLogic: assignments take twice the benchmark, don't reach the driver in real time, and mandatory compliance takes 5× longer, so they finish the day in WhatsApp.</p>
+    <div class="grid g4" style="margin-bottom:16px">
+      <div class="card stat"><div class="n">18%</div><div class="l">of coordinators finish the daily dispatch workflow in RouteLogic</div></div>
+      <div class="card stat"><div class="n">14.6<span class="muted" style="font-size:.5em"> vs 3.0 min</span></div><div class="l">Log Compliance Checks, the steepest drop-off (71% → 48%)</div></div>
+      <div class="card stat"><div class="n">31 min</div><div class="l">lost a day to manual workarounds (up from ~9)</div></div>
+      <div class="card stat"><div class="n">+18 → −12</div><div class="l">coordinator NPS; 4 of 5 churned accounts now cite complexity</div></div>
+    </div>
+    <div class="seg" role="tablist" data-group="m3">
+      <button role="tab" aria-selected="true" data-pane="m3-a">Hypothesis</button>
+      <button role="tab" aria-selected="false" data-pane="m3-b">Success metrics</button>
+      <button role="tab" aria-selected="false" data-pane="m3-c">Decision window</button>
+    </div>
+    <div class="pane on card" id="m3-a"><p>Based on dispatchers running the day from a WhatsApp group (UXR-02) and only 18% of coordinators finishing their daily workflow in RouteLogic, I believe that a focused Velocity workspace that closes the assignment loop (the re-route reaches the driver in seconds and compliance is logged in the same flow) will move coordinators back into RouteLogic and reduce complexity-driven churn, as measured by a 2× increase in in-tool workflow completion (18% → 36%). I will protect Manager Reporting CSAT (≥ 4.3) and make a go/no-go decision at week 8 (a 4-week pilot followed by 4 weeks of GA).</p></div>
+    <div class="pane tbl" id="m3-b"><table>
+      <thead><tr><th>Metric</th><th>Type</th><th>Baseline</th><th>Target</th><th>Why it matters</th></tr></thead>
+      <tbody>
+        <tr><td>In-tool daily workflow completion (coordinators)</td><td><span class="pill acc">Primary / leading</span></td><td>18%</td><td><b>36%</b></td><td class="muted">Shows coordinators closing the loop in RouteLogic instead of WhatsApp</td></tr>
+        <tr><td>Daily minutes lost to manual workarounds</td><td><span class="pill">Secondary</span></td><td>31 min</td><td><b>≤ 15 min</b></td><td class="muted">The cost of the workaround, linked to the NPS collapse</td></tr>
+        <tr><td>Managers × Reporting CSAT</td><td><span class="pill warn">Guardrail</span></td><td>4.5</td><td><b>≥ 4.3</b></td><td class="muted">Protects the enterprise buyers' reason to stay</td></tr>
+      </tbody></table></div>
+    <div class="pane card" id="m3-c"><p>8 weeks in two phases, extending the current Velocity pilot. Weeks 1–4: a pilot with 3 accounts (re-route alerts + step progress) that must pass the PRD evals to move on. Weeks 5–8: GA with the compliance checklist, so both halves of the loop are live. Go/no-go at week 8: scale if completion reaches 30% or more and the guardrail holds; pivot if completion improves but stays below 30%; kill or roll back if the guardrail breaks.</p></div>
+  </div>
+</section>
+
+<!-- 3 · Competitive & Journey -->
+<section class="slide" data-title="Competitive Analysis &amp; Journey Map">
+  <div class="wrap">
+    <div class="eyebrow">03 · Module 2 · Competitive Analysis &amp; Journey Map</div>
+    <h2>The real competitor is a WhatsApp group</h2>
+    <blockquote style="margin-bottom:30px">"I reassign a route and the driver doesn't see it for ten, fifteen minutes. By then they've driven the wrong way. We keep a WhatsApp group as the real system."<cite>UXR-02 · fleet dispatcher, mid-size 3PL</cite></blockquote>
+    <div class="seg" role="tablist" data-group="m2">
+      <button role="tab" aria-selected="true" data-pane="m2-a">Journey today</button>
+      <button role="tab" aria-selected="false" data-pane="m2-b">Competitive comparison</button>
+      <button role="tab" aria-selected="false" data-pane="m2-c">Future state</button>
+    </div>
+    <div class="pane on" id="m2-a">
+      <div class="stages" role="tablist" data-stages>
+        <button class="stage" data-s="0" aria-selected="false"><div class="k">1</div><div class="t">Exception hits</div></button>
+        <button class="stage" data-s="1" aria-selected="false"><div class="k">2</div><div class="t">Reassign</div></button>
+        <button class="stage misery" data-s="2" aria-selected="true"><div class="k">3 · Moment of misery</div><div class="t">Reach the driver</div></button>
+        <button class="stage" data-s="3" aria-selected="false"><div class="k">4</div><div class="t">Track the fleet</div></button>
+        <button class="stage" data-s="4" aria-selected="false"><div class="k">5</div><div class="t">Recover from failure</div></button>
+      </div>
+      <div class="detail" id="stageDetail"></div>
+      <p class="small muted" style="margin-top:14px">Persona: fleet dispatcher, mid-size 3PL (UXR-02, UXR-09), with the delivery driver as co-persona. Emotions are inferred from the quotes. · <a href="../02-discovery/journey-map.md">Full journey map</a> · <a href="../02-discovery/future-state-journey.html">Visual timeline</a></p>
+    </div>
+    <div class="pane" id="m2-b">
+      <div class="tbl"><table>
+        <thead><tr><th></th><th>RouteLogic today</th><th>WhatsApp workaround</th><th>Leaner competitor</th></tr></thead>
+        <tbody>
+          <tr><td><b>Re-route reaches the driver</b></td><td>8–15 min, no push <span class="ref">BUG-2044</span></td><td>Instant, but manual and off the record</td><td class="muted">Unknown, to research</td></tr>
+          <tr><td><b>Confirm a delivery</b></td><td>3 taps across 3 screens <span class="ref">BUG-2055</span></td><td>Free-text message</td><td class="muted">Unknown, to research</td></tr>
+          <tr><td><b>Trusted live status</b></td><td>No, lags 20–60 min <span class="ref">BUG-2072</span></td><td>Only in the dispatcher's head and chat</td><td class="muted">Unknown, to research</td></tr>
+          <tr><td><b>Feeds admin reporting</b></td><td>Yes, "genuinely powerful" <span class="ref">UXR-10</span></td><td>No</td><td class="muted">Unknown, to research</td></tr>
+          <tr><td><b>Ease for frontline users</b></td><td>Low: users touch ~5% and can't find it <span class="ref">UXR-04</span></td><td>High: everyone already uses it</td><td>"Just does routing well" <span class="ref">UXR-04</span></td></tr>
+        </tbody></table></div>
+      <p style="margin-top:16px"><b>Read:</b> WhatsApp wins on speed, RouteLogic wins on reporting. Velocity's opening is to match WhatsApp's speed without losing the record, before the competitor shows it can do both.</p>
+    </div>
+    <div class="pane" id="m2-c">
+      <div class="grid g4">
+        <div class="card"><div class="label">1</div><h3>Spot the exception</h3><p class="small muted">"I can see it. I don't have to ask."</p></div>
+        <div class="card"><div class="label">2</div><h3>Re-route in one move</h3><p class="small muted">"That was one step."</p></div>
+        <div class="card"><div class="label">3</div><h3>The driver gets it now</h3><p class="small muted">"Done once, and it landed."</p></div>
+        <div class="card"><div class="label">4</div><h3>Trust the board</h3><p class="small muted">"The board is the truth. I can mute the WhatsApp group."</p></div>
+      </div>
+      <div class="grid g3" style="margin-top:16px">
+        <div><h3>One entry, not two</h3><p class="small muted">A change made once reaches the driver; WhatsApp always needs a second send.</p></div>
+        <div><h3>One record everyone trusts</h3><p class="small muted">Live status replaces chat threads nobody can search, audit or hand over.</p></div>
+        <div><h3>It feeds what customers pay for</h3><p class="small muted">Taps land in the admin reporting that sold the product (UXR-10); texts never do.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 · Roadmap, PRD, Prototype -->
+<section class="slide" data-title="Roadmap, PRD &amp; Prototype">
+  <div class="wrap">
+    <div class="eyebrow">04 · Module 4 · Roadmap, PRD &amp; Prototype</div>
+    <h2>First the re-route, then compliance</h2>
+    <p class="lede">Velocity closes the coordinator's assignment loop in two phases. Scoring: Effort vs. Value (1–5), constrained by 2 engineers, 1 designer and 1 CS lead.</p>
+    <div class="seg" role="tablist" data-group="m4">
+      <button role="tab" aria-selected="true" data-pane="m4-a">Roadmap</button>
+      <button role="tab" aria-selected="false" data-pane="m4-b">PRD · B6 Driver Alerts</button>
+      <button role="tab" aria-selected="false" data-pane="m4-c">Prototype</button>
+    </div>
+    <div class="pane on" id="m4-a">
+      <div class="lanes" role="tablist" data-lanes>
+        <button class="lane" data-l="0" aria-selected="true"><div class="k">Now · Pilot</div><div class="t">B6 Driver Alert Notifications · B5 Step Progress Indicator</div></button>
+        <button class="lane" data-l="1" aria-selected="false"><div class="k">Next · GA</div><div class="t">B1 One-Click Compliance Checklist · B4 Mobile-First Coordinator Dashboard</div></button>
+        <button class="lane" data-l="2" aria-selected="false"><div class="k">Later</div><div class="t">B9 Compliance Audit Trail Export · B10 In-App Coordinator Training</div></button>
+        <button class="lane cut" data-l="3" aria-selected="false"><div class="k">Cut</div><div class="t">B2 Daily Report Auto-Fill · B3 Shift Handoff Wizard · B7 AI ETA Display · B8 Fleet Analytics Manager View</div></button>
+      </div>
+      <div class="card" id="laneWhy"></div>
+      <p class="small muted" style="margin-top:14px"><b>Milestones:</b> week 4, the pilot passes the PRD evals and moves to GA · week 8, go/no-go on in-tool completion (scale at ≥ 30%, target 36%, guardrail ≥ 4.3). · <a href="../04-roadmap/roadmap.html">Interactive roadmap</a></p>
+    </div>
+    <div class="pane" id="m4-b">
+      <p class="big" style="margin-bottom:22px">A re-route reaches the driver in seconds and is confirmed in one tap, so the coordinator never has to send it again on WhatsApp.</p>
+      <div class="grid g2">
+        <div class="card"><div class="label">Must-haves</div><ul class="clean small"><li>Push on re-route (≤ 5 s vs. 8–15 min today)</li><li>Deep link to the updated route</li><li>One-tap confirm</li><li>Sent / Delivered / Confirmed on the board</li><li>Event logging</li></ul></div>
+        <div class="grid" style="gap:16px">
+          <div class="card"><div class="label">Won't (now)</div><p class="small">Compliance flag alerts (they wait for B1) · WhatsApp integration · manager notifications.</p></div>
+          <div class="card"><div class="label">Safety guard</div><p class="small">The alert text comes only from the route record; if the stop has no address, the alert is blocked.</p></div>
+          <div class="card"><div class="label">Evals</div><p class="small">100% of alerts match the route record · send → confirmed ≤ 30 s · 100% of unconfirmed re-routes flagged at 2 min.</p></div>
+        </div>
+      </div>
+      <p class="small muted" style="margin-top:14px"><a href="../04-roadmap/prd-b6-driver-alerts.md">Full PRD</a></p>
+    </div>
+    <div class="pane" id="m4-c">
+      <div class="grid g3">
+        <div class="card"><div class="label">Screen 1 · Entry point</div><h3>Live Dispatch board</h3><p class="small muted">Re-route panel with "Send to driver".</p></div>
+        <div class="card"><div class="label">Screen 2 · Feature core</div><h3>Driver's phone</h3><p class="small muted">The alert and the new route, with a one-tap Confirm.</p></div>
+        <div class="card"><div class="label">Screen 3 · Success</div><h3>Confirmed in 0:xx</h3><p class="small muted">The board's status moves Sent → Delivered → Confirmed.</p></div>
+      </div>
+      <p style="margin-top:18px">It also includes 6 walkthrough scenarios: happy path, no signal, conflicting changes, the safety guard, an unassigned route, and a cancelled change.</p>
+      <a class="cta" href="../04-roadmap/prototype-b6-driver-alerts.html" target="_blank" rel="noopener">Open the prototype ↗</a>
+    </div>
+  </div>
+</section>
+
+<!-- 5 · Experiment -->
+<section class="slide" data-title="Experimentation Plan">
+  <div class="wrap">
+    <div class="eyebrow">05 · Module 5 · Experimentation Plan</div>
+    <h2>A 4-week A/B test of B6 alone</h2>
+    <p class="lede">50/50, randomized by dispatch team inside the 3 pilot accounts. It tests the re-route half of the coordinator's assignment loop before the compliance half (B1) ships.</p>
+    <div class="grid g4" style="margin-bottom:22px">
+      <div class="card stat"><div class="n">18% → 30%</div><div class="l">MDE +12 pp, the go/no-go floor</div></div>
+      <div class="card stat"><div class="n">198</div><div class="l">coordinator-days per arm (α 0.05, 80% power)</div></div>
+      <div class="card stat"><div class="n">4 wks</div><div class="l">covering 4 weekly cycles</div></div>
+      <div class="card stat"><div class="n">≥ 4.3</div><div class="l">Managers × Reporting CSAT guardrail (today 4.5)</div></div>
+    </div>
+    <div class="seg" role="tablist" data-group="m5">
+      <button role="tab" aria-selected="true" data-pane="m5-a">Decision rule</button>
+      <button role="tab" aria-selected="false" data-pane="m5-b">Control vs. variant</button>
+      <button role="tab" aria-selected="false" data-pane="m5-c">Hypothesis</button>
+    </div>
+    <div class="pane on" id="m5-a">
+      <div class="dec" role="tablist" data-dec>
+        <button data-k="ship" aria-selected="true">Ship</button>
+        <button data-k="pivot" aria-selected="false">Pivot</button>
+        <button data-k="kill" aria-selected="false">Kill or roll back</button>
+      </div>
+      <div class="card" id="decText"></div>
+    </div>
+    <div class="pane" id="m5-b">
+      <div class="grid g2">
+        <div class="card"><div class="label">Control (A) · today</div><ul class="clean small">
+          <li>The coordinator re-routes on the Live Dispatch Board.</li>
+          <li>There's no push to the driver: the change takes 8–15 min to arrive (BUG-2044).</li>
+          <li>So the coordinator re-sends it in the WhatsApp group or calls (UXR-02).</li>
+          <li>Assign Routes takes 8.2 min vs. a 4.0 benchmark, and 29% never complete it in-tool.</li></ul></div>
+        <div class="card"><div class="label" style="color:var(--acc)">Variant (B) · one change: B6</div><ul class="clean small">
+          <li>Board: a re-route panel with "Send to driver".</li>
+          <li>Driver phone: a lock-screen push "Route changed · New next stop: …" and a one-tap Confirm.</li>
+          <li>Board: the badge goes Sent → Delivered → Confirmed, plus a "Not confirmed" flag after 2 min and Resend.</li>
+          <li>B5 and B1 are held out of both arms.</li></ul></div>
+      </div>
+    </div>
+    <div class="pane card" id="m5-c"><p class="big" style="margin:0">If coordinators can push a re-route straight to the driver and see it confirmed in one tap (B6), then their in-tool daily workflow completion will rise from 18% to at least 30%, because they no longer need WhatsApp to close the re-route loop. Managers × Reporting CSAT stays ≥ 4.3.</p></div>
+  </div>
+</section>
+
+<!-- 6 · GTM -->
+<section class="slide" data-title="GTM Launch Plan &amp; Success Dashboard">
+  <div class="wrap">
+    <div class="eyebrow">06 · Module 6 · GTM Launch Plan &amp; Success Dashboard</div>
+    <h2>A Tier M, engagement-led launch</h2>
+    <p class="lede">B6 Driver Alerts to existing customers, not a new market. The goal is behaviour change: coordinators stop re-sending re-routes in WhatsApp, and drivers turn on push and confirm in one tap.</p>
+    <div class="tl">
+      <div><div class="label">Phase 1 · Beta</div><p class="small">Weeks 1–4, the M5 A/B test at the 3 pilot accounts.</p></div>
+      <div><div class="label" style="color:var(--acc)">Phase 2 · Launch moment</div><p class="small">Week 5. B6 goes to every team in the pilot accounts, alongside the GA start with B1.</p></div>
+      <div><div class="label">Phase 3 · Post-launch</div><p class="small">Weeks 5–8, ending in the go/no-go at week 8. Results then go to the at-risk renewals.</p></div>
+    </div>
+    <div class="seg" role="tablist" data-group="m6">
+      <button role="tab" aria-selected="true" data-pane="m6-a">Success dashboard</button>
+      <button role="tab" aria-selected="false" data-pane="m6-b">Channels</button>
+      <button role="tab" aria-selected="false" data-pane="m6-c">Decision</button>
+    </div>
+    <div class="pane on tbl" id="m6-a"><table>
+      <thead><tr><th>KPI</th><th>Baseline</th><th>Target</th><th>Window</th></tr></thead>
+      <tbody>
+        <tr><td>In-tool daily workflow completion <span class="pill acc">Primary</span></td><td>18%</td><td><b>≥ 30% floor, 36% target</b></td><td>Week 8</td></tr>
+        <tr><td>Pilot drivers with push alerts enabled</td><td>0% (no push today)</td><td><b>≥ 90%</b></td><td>End of week 1</td></tr>
+        <tr><td>Send → confirmed time</td><td>8–15 min, no push <span class="ref">BUG-2044</span></td><td><b>≤ 30 s</b></td><td>Weeks 1–4</td></tr>
+        <tr><td>Unconfirmed re-routes flagged at 2 min</td><td>0% (not tracked)</td><td><b>100%</b></td><td>Weeks 1–4</td></tr>
+        <tr><td>Managers × Reporting CSAT <span class="pill warn">Guardrail</span></td><td>4.5</td><td><b>≥ 4.3</b></td><td>Week 8</td></tr>
+      </tbody></table></div>
+    <div class="pane" id="m6-b"><div class="grid g3">
+      <div class="card"><div class="label">1 · Owned</div><h3>In-product</h3><p class="small muted">A one-time prompt on the board ("Re-routes now reach the driver in seconds") and a push-permission ask in the driver app.</p></div>
+      <div class="card"><div class="label">2 · Owned</div><h3>CS-led depot onboarding</h3><p class="small muted">A 15-minute session per dispatch team, plus a driver quick card.</p></div>
+      <div class="card"><div class="label">3 · Owned</div><h3>Account email + renewal review</h3><p class="small muted">Shares the pilot results (send → confirmed time, completion lift) with the ops managers who sign.</p></div>
+    </div><p class="small muted" style="margin-top:14px">No paid channel: the audience is already a customer.</p></div>
+    <div class="pane card" id="m6-c">
+      <div class="label">Most likely post-launch decision</div>
+      <p class="aha" style="font-size:clamp(20px,2.4vw,26px)">Iterate.</p>
+      <p>B6 lifts completion but stays below 30%, because the compliance step (71% → 48% drop-off) is untouched. Next step: ship B1 and judge B6 + B1 at week 8.</p>
+      <p class="small muted"><b>Bad signal to watch for:</b> alerts are delivered and confirmed fast, but completion doesn't move and the WhatsApp group stays active. That means the re-route wasn't the only break in the loop.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 7 · Insights -->
+<section class="slide" data-title="Individual Insights">
+  <div class="wrap">
+    <div class="eyebrow">07 · Module 6 · Individual Insights</div>
+    <h2>What I learned</h2>
+    <div class="card" style="margin:10px 0 18px;border-color:var(--acc)">
+      <div class="label" style="color:var(--acc)">Aha moment</div>
+      <p class="aha">The value was never "fewer clicks." It was "no phone call."</p>
+      <p class="muted">Coordinators don't leave RouteLogic because it takes three taps. They leave because the change doesn't reach the driver, so they have to do it again somewhere else. Once I saw that the competitor to beat was the WhatsApp group, not another app, every decision got simpler: the hook, the PRD's ≤ 5 s requirement, the primary metric and the GTM message.</p>
+    </div>
+    <div class="grid g2">
+      <div class="card ins" tabindex="0">
+        <div class="label">Friction points</div>
+        <h3>The data disagreed with my hook (M3).</h3>
+        <div class="hint">Show all ↓</div>
+        <div class="more">
+          <p>I started from the moment of misery: a re-route takes 8–15 min to reach the driver. The data check showed the biggest measured gap was somewhere else: compliance, 14.6 min against a 3.0 benchmark. The hard part was choosing between keeping a clean story and following the data. I kept both by reframing the problem as one "assignment loop," with the re-route and compliance in the same flow. That made every later step harder.</p>
+          <p><b>Fitting it into 2 engineers and 4 weeks (M4).</b> B1 (compliance) was the largest gap, but it was too big to build next to B6, and I couldn't scope it down. So I had to accept that the pilot alone couldn't prove the whole hypothesis.</p>
+          <p><b>The "one change" rule (M5).</b> A clean A/B test meant pulling B5 out of my own pilot and testing B6 alone. Then the honest prediction was "pivot," not "ship." It's uncomfortable to design a test you expect to fall short of your own threshold.</p>
+        </div>
+      </div>
+      <div class="card ins" tabindex="0">
+        <div class="label">Key learnings</div>
+        <h3>AI follows my framing; it doesn't make it.</h3>
+        <div class="hint">Show all ↓</div>
+        <div class="more">
+          <p>In M1, the mind map only became useful once I gave it a persona, a job to be done and an effort-vs-impact frame. In M2, the AI summary sounded complete, but it was written mostly from the driver's side and reduced the dispatcher's double entry to a few scattered bullets. It also gave severity labels to interview findings that had no severity. I now read AI output the way I'd review a junior analyst's work: check the evidence, not the tone.</p>
+          <p><b>Thin evidence is a hypothesis, not a fact.</b> Only 2 of 12 research notes came from dispatchers. Saying so in the deck made the story stronger, not weaker.</p>
+          <p><b>Cutting is the real roadmap work.</b> Saying no to B8 (Sales-driven) and B2 (a risk to the reporting guardrail) did more for focus than any feature I added.</p>
+          <p><b>A launch is behaviour change.</b> In M6, the plan was less about channels than about getting two groups to drop a habit: coordinators leave WhatsApp, and drivers allow push.</p>
+        </div>
+      </div>
+    </div>
+    <p class="small muted" style="margin-top:28px">Product Management Foundations · Final Project · Paula Negrete</p>
+  </div>
+</section>
+
+</main>
+
+<nav class="nav" aria-label="Slides">
+  <div class="dots" id="dots"></div>
+  <div class="ttl" id="ttl"></div>
+  <div class="ctl">
+    <span class="cnt" id="cnt"></span>
+    <button id="prev" aria-label="Previous slide">‹</button>
+    <button id="next" aria-label="Next slide">›</button>
+  </div>
+</nav>
+
+<script>
+(function(){
+  var slides=[].slice.call(document.querySelectorAll('.slide'));
+  var dots=document.getElementById('dots'),cnt=document.getElementById('cnt'),ttl=document.getElementById('ttl'),bar=document.getElementById('bar');
+  var prev=document.getElementById('prev'),next=document.getElementById('next');
+  var i=0;
+  slides.forEach(function(s,k){
+    var b=document.createElement('button');
+    b.setAttribute('aria-label',(k+1)+'. '+s.dataset.title.replace(/&amp;/g,'&'));
+    b.title=s.dataset.title.replace(/&amp;/g,'&');
+    b.onclick=function(){go(k)};
+    dots.appendChild(b);
+  });
+  function go(k){
+    k=Math.max(0,Math.min(slides.length-1,k));
+    slides[i].classList.remove('on');i=k;slides[i].classList.add('on');slides[i].scrollTop=0;
+    [].forEach.call(dots.children,function(d,j){d.setAttribute('aria-current',j===i?'true':'false')});
+    cnt.textContent=(i+1)+' / '+slides.length;
+    ttl.innerHTML=slides[i].dataset.title;
+    bar.style.width=((i+1)/slides.length*100)+'%';
+    prev.disabled=i===0;next.disabled=i===slides.length-1;
+    try{history.replaceState(null,'','#'+(i+1))}catch(e){}
+  }
+  prev.onclick=function(){go(i-1)};next.onclick=function(){go(i+1)};
+  document.querySelectorAll('[data-go]').forEach(function(b){b.onclick=function(){go(+b.dataset.go)}});
+  document.addEventListener('keydown',function(e){
+    if(e.target.closest&&e.target.closest('input,textarea'))return;
+    if(['ArrowRight','PageDown',' '].indexOf(e.key)>-1){e.preventDefault();go(i+1)}
+    else if(['ArrowLeft','PageUp'].indexOf(e.key)>-1){e.preventDefault();go(i-1)}
+    else if(e.key==='Home'){go(0)}else if(e.key==='End'){go(slides.length-1)}
+  });
+  var x0=null,y0=null;
+  document.addEventListener('touchstart',function(e){x0=e.touches[0].clientX;y0=e.touches[0].clientY},{passive:true});
+  document.addEventListener('touchend',function(e){
+    if(x0===null)return;var dx=e.changedTouches[0].clientX-x0,dy=e.changedTouches[0].clientY-y0;
+    if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5){go(i+(dx<0?1:-1))}x0=null;
+  },{passive:true});
+
+  /* segmented tabs */
+  document.querySelectorAll('.seg').forEach(function(seg){
+    var btns=seg.querySelectorAll('button');
+    btns.forEach(function(b){b.onclick=function(){
+      btns.forEach(function(o){o.setAttribute('aria-selected','false');document.getElementById(o.dataset.pane).classList.remove('on')});
+      b.setAttribute('aria-selected','true');document.getElementById(b.dataset.pane).classList.add('on');
+    }});
+  });
+
+  /* generic single-select group */
+  function picker(sel,item,render){
+    var wrap=document.querySelector(sel);if(!wrap)return;
+    var items=wrap.querySelectorAll(item);
+    function pick(b){items.forEach(function(o){o.setAttribute('aria-selected',o===b?'true':'false')});render(b)}
+    items.forEach(function(b){b.onclick=function(){pick(b)}});
+    pick(wrap.querySelector('[aria-selected="true"]')||items[0]);
+  }
+
+  var stages=[
+    {act:'Learns a stop or route needs to change',tool:'RouteLogic + WhatsApp',brk:'—',ev:'—',emo:'Alert'},
+    {act:'Reassigns the route in RouteLogic',tool:'RouteLogic',brk:'Change takes 8–15 min to reach the driver, no push (BUG-2044)',ev:'"The driver doesn’t see it for ten, fifteen minutes" (UXR-02)',emo:'Doubtful'},
+    {act:'Re-sends the change in WhatsApp or calls the driver',tool:'WhatsApp / phone',brk:'Double entry on every change',ev:'"We keep a WhatsApp group as the real system" (UXR-02)',emo:'Frustrated, doing it twice'},
+    {act:'Asks drivers in chat what is really done',tool:'WhatsApp / driver texts',brk:'Board shows "in progress" for stops delivered an hour ago (BUG-2072); confirmations arrive by text because "mark delivered" takes 3 screens (BUG-2055)',ev:'"I can’t trust the board" (UXR-09)',emo:'Distrustful'},
+    {act:'Office reads remaining stops to the driver by phone',tool:'Phone',brk:'App crashes past ~40 stops and loses the route (BUG-2031)',ev:'"Twenty minutes gone" (UXR-03)',emo:'Firefighting'}
+  ];
+  var sd=document.getElementById('stageDetail');
+  picker('[data-stages]','.stage',function(b){
+    var s=stages[+b.dataset.s];
+    sd.innerHTML='<div class="card"><div class="label">Dispatcher action</div><p>'+s.act+'</p><p class="small muted">Tool: '+s.tool+'</p></div>'+
+      '<div class="card"><div class="label">What breaks</div><p>'+s.brk+'</p></div>'+
+      '<div class="card"><div class="label">Evidence</div><p>'+s.ev+'</p><p class="small muted">Emotion (inferred): '+s.emo+'</p></div>';
+  });
+
+  var lanes=[
+    '<div class="label">Now · Pilot (4 weeks, 3 accounts)</div><p>Quick Wins: B6 kills the moment of misery (a re-route takes 8–15 min to reach the driver, BUG-2044); B5 targets abandonment after assignment (91% open the board, 18% finish).</p>',
+    '<div class="label">Next · GA (weeks 5–8)</div><p>B1 is the largest measured gap (14.6 vs 3.0 min, drop-off 71% → 48%) but too big to build next to B6 with 2 engineers; B4 builds on both.</p>',
+    '<div class="label">Later · Backlog</div><p>B9 only matters once B1 captures compliance data; the CS lead onboards the pilot accounts by hand.</p>',
+    '<div class="label">Cut</div><p>Outside the loop, low adoption (B7: 11%), or Sales-driven (B8); B2 also puts the Reporting guardrail at risk.</p><p class="small muted">I favoured the coordinator’s core friction over Sales, Legal and CS requests.</p>'
+  ];
+  var lw=document.getElementById('laneWhy');
+  picker('[data-lanes]','.lane',function(b){lw.innerHTML=lanes[+b.dataset.l]});
+
+  var dec={
+    ship:'<div class="label" style="color:var(--ok)">Ship · B6 to all pilot accounts, then GA with B1</div><p>B reaches ≥ 30% and beats A at p &lt; 0.05, the guardrail holds (≥ 4.3), and the PRD evals pass (send → confirmed ≤ 30 s; 100% of unconfirmed re-routes flagged).</p>',
+    pivot:'<div class="label" style="color:var(--warn)">Pivot · keep B6, judge it with B1</div><p>B beats A significantly but stays below 30%. That points to compliance as the remaining break in the loop. The next test is B6 + B1 vs. B6.</p>',
+    kill:'<div class="label" style="color:var(--bad)">Kill or roll back</div><p>No significant lift, or the guardrail falls below 4.3.</p>'
+  };
+  var dt=document.getElementById('decText');
+  picker('[data-dec]','button',function(b){dt.innerHTML=dec[b.dataset.k]});
+
+  /* insights expand */
+  document.querySelectorAll('.ins').forEach(function(c){
+    function t(){c.classList.toggle('open')}
+    c.onclick=t;c.onkeydown=function(e){if(e.key==='Enter'){t()}};
+  });
+
+  var start=parseInt((location.hash||'').slice(1),10);
+  go(isNaN(start)?0:start-1);
+})();
+</script>
+</body>
+</html>

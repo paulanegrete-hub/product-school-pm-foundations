@@ -20,7 +20,7 @@ This is a **template repo**. Click **Use this template → Create a new reposito
 | 5 | **Experimentation Plan** | M5 | ☑ | `05-experimentation/experimentation-plan.md` |
 | 6 | **GTM Strategy & Success Dashboard** | M6 | ☑ | `06-launch/gtm-and-dashboard.md` |
 | 6 | **Individual Insights** (reflection) | M6 | ☑ | `06-launch/individual-insights.md` |
-| ★ | **Final Project Presentation** (the deck you submit) | M6 | ☐ | `06-launch/final-presentation.md` |
+| ★ | **Final Project Presentation** (the deck you submit) | M6 | ☑ | `06-launch/final-presentation.md` |
 
 ## The project in one sentence
 
