@@ -18,8 +18,8 @@ This is a **template repo**. Click **Use this template → Create a new reposito
 | 4 | **Roadmap, PRD & Prototype** | M4 | ☑ | `04-roadmap/roadmap-prd-prototype.md` |
 | 4 | **PRD & Prototype Sprint** | M4 | ☑ | `04-roadmap/prd-and-prototype.md` |
 | 5 | **Experimentation Plan** | M5 | ☑ | `05-experimentation/experimentation-plan.md` |
-| 6 | **GTM Strategy & Success Dashboard** | M6 | ☐ | `06-launch/gtm-and-dashboard.md` |
-| 6 | **Individual Insights** (reflection) | M6 | ☐ | `06-launch/individual-insights.md` |
+| 6 | **GTM Strategy & Success Dashboard** | M6 | ☑ | `06-launch/gtm-and-dashboard.md` |
+| 6 | **Individual Insights** (reflection) | M6 | ☑ | `06-launch/individual-insights.md` |
 | ★ | **Final Project Presentation** (the deck you submit) | M6 | ☐ | `06-launch/final-presentation.md` |
 
 ## The project in one sentence
